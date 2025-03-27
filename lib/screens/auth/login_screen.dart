@@ -1,5 +1,5 @@
-import 'package:ecomerce_app/screens/widgets/custom_button.dart';
-import 'package:ecomerce_app/screens/widgets/input_field.dart';
+import 'package:ecomerce_app/screens/widgets/button_input/custom_button.dart';
+import 'package:ecomerce_app/screens/widgets/button_input/input_field.dart';
 import 'package:flutter/material.dart';
 // SCREEN
 import 'package:ecomerce_app/home.dart';
@@ -11,23 +11,21 @@ import 'package:flutter_social_button/flutter_social_button.dart';
 // FIREBASE
 import 'package:ecomerce_app/services/firebase_auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  _LoginState createState() => _LoginState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuthService _auth = FirebaseAuthService();
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscureTextPassword = true;
-  // bool _rememberMe = false;
   bool _isSigning = false;
   final FocusNode _focusNodeEmail = FocusNode();
   final FocusNode _focusNodePassword = FocusNode();
@@ -37,31 +35,20 @@ class _LoginState extends State<Login> {
       _isSigning = true;
     });
 
-    _formKey.currentState!.validate();
+    if (!_formKey.currentState!.validate()) {
+      setState(() {
+        _isSigning = false;
+      });
+      return;
+    }
+
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
     if (email == "admin@gmail.com" && password == "admin123") {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-      await prefs.setString('role', 'admin');
-
-      setState(() {
-        _isSigning = false;
-      });
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đăng nhập Admin thành công!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      await _auth.setLoggedIn(true);
+      await _auth.setUserRole('admin');
+      _navigateToScreen(const AdminHomeScreen(), "Đăng nhập Admin thành công!");
       return;
     }
 
@@ -70,45 +57,39 @@ class _LoginState extends State<Login> {
       password: password,
     );
 
-    setState(() {
-      _isSigning = false;
-    });
-
     if (user != null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-      await prefs.setString('role', 'user');
-
-      print("Sign in successfully!!");
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Home()),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đăng nhập thành công'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      await _auth.setLoggedIn(true);
+      await _auth.setUserRole('user');
+      _navigateToScreen(const HomeScreen(), "Đăng nhập thành công!");
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            "Thông tin không chính xác! Vui lòng kiểm tra lại",
-          ),
-          duration: const Duration(seconds: 2),
-          action: SnackBarAction(
-            label: 'Đóng',
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            },
-          ),
+        const SnackBar(
+          content: Text("Thông tin không chính xác! Vui lòng kiểm tra lại"),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       print("Some error happened");
     }
+
+    setState(() {
+      _isSigning = false;
+    });
+  }
+
+  void _navigateToScreen(Widget screen, String message) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => screen),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -138,7 +119,10 @@ class _LoginState extends State<Login> {
                       CustomButton(
                         text: "Đăng ký",
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => SignUp()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => SignUpScreen()),
+                          );
                         },
                         backgroundColor: const Color(0xFF7AE582),
                         textColor: Colors.white,
@@ -146,27 +130,6 @@ class _LoginState extends State<Login> {
                         height: 32,
                         width: 100,
                       ),
-
-                      // ElevatedButton(
-                      //   onPressed: () {
-                      //     Navigator.push(
-                      //       context,
-                      //       MaterialPageRoute(builder: (context) => SignUp()),
-                      //     );
-                      //   },
-                      //   style: ElevatedButton.styleFrom(
-                      //     backgroundColor: Color(0xFF7AE582),
-                      //     foregroundColor: Colors.white,
-                      //     minimumSize: const Size(70, 32),
-                      //     shape: RoundedRectangleBorder(
-                      //       borderRadius: BorderRadius.circular(5),
-                      //     ),
-                      //   ),
-                      //   child: const Text(
-                      //     'Đăng ký',
-                      //     style: TextStyle(fontSize: 12),
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
@@ -276,7 +239,11 @@ class _LoginState extends State<Login> {
                                 }
                               },
                               isLoading: _isSigning,
-                              padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 24.0),
+                              padding: const EdgeInsets.only(
+                                left: 24.0,
+                                right: 24.0,
+                                bottom: 24.0,
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.only(
@@ -302,7 +269,7 @@ class _LoginState extends State<Login> {
                                 ),
                               ),
                             ),
-                            // UX UI Other Login
+                            // UX UI Other LoginScreen
                             const Padding(
                               padding: EdgeInsets.only(
                                 left: 40.0,
