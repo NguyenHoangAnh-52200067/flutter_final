@@ -1,4 +1,4 @@
-import 'package:ecomerce_app/screens/widgets/appbar/custom_appbar.dart';
+import 'package:ecommerce_app/screens/widgets/appbar/custom_appbar.dart';
 import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget {
