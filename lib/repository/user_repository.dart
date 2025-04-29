@@ -1,13 +1,98 @@
-import 'package:ecommerce_app/models/user_model.dart';
+import 'package:ecomerce_app/models/address_model.dart';
+import 'package:ecomerce_app/models/user_model.dart';
+import 'package:ecomerce_app/repository/guest_user_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
+import 'dart:convert';
 
 class UserRepository extends GetxController {
   static UserRepository get instance => Get.find();
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final Uuid uuid = Uuid();
+  bool isUserId(String id) {
+    final uuidV4Regex = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+    );
+
+    return !uuidV4Regex.hasMatch(id);
+  }
+
+  String? getCurrentUserId() {
+    User? user = _auth.currentUser;
+    return user?.uid;
+  }
+
+  Future<String> getEffectiveUserId() async {
+    final uid = getCurrentUserId();
+    if (uid != null) return uid;
+
+    return await GuestUserRepository.getOrCreateGuestId();
+  }
+
+  Future<String?> getUserRole(String userId) async {
+    try {
+      final userDoc = await _db.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        return null;
+      }
+      return userDoc.data()?['role'] ?? 'user';
+    } catch (e) {
+      print("Error getting user role: $e");
+      return null;
+    }
+  }
+
+  Future<bool> banUser(String userId) async {
+    try {
+      await _db.collection('users').doc(userId).update({'isBanned': true});
+      return true;
+    } catch (e) {
+      print("Lỗi khi cấm người dùng: ${e.toString()}");
+      return false;
+    }
+  }
+
+  Future<bool> isUserBannedByEmail(String email) async {
+    try {
+      final querySnapshot =
+          await _db.collection('users').where('email', isEqualTo: email).get();
+
+      if (querySnapshot.docs.isEmpty) {
+        return false;
+      }
+
+      return querySnapshot.docs.first.data()['isBanned'] ?? false;
+    } catch (e) {
+      print("Lỗi kiểm tra trạng thái cấm theo email: $e");
+      return false;
+    }
+  }
+
+  Future<bool> unbanUser(String userId) async {
+    try {
+      await _db.collection('users').doc(userId).update({'isBanned': false});
+      print("Mở khóa Thành công ");
+      return true;
+    } catch (e) {
+      print("Lỗi khi bỏ cấm người dùng: ${e.toString()}");
+      return false;
+    }
+  }
+
+  Future<bool> isUserBanned(String userId) async {
+    try {
+      final userDoc = await _db.collection('users').doc(userId).get();
+      return userDoc.data()?['isBanned'] ?? false;
+    } catch (e) {
+      print("Lỗi kiểm tra trạng thái cấm: $e");
+      return false;
+    }
+  }
 
   Future<void> createUser(BuildContext context, UserModel user) async {
     try {
@@ -29,7 +114,7 @@ class UserRepository extends GetxController {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Lỗi tạo tài khoản: $error"),
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 100),
           action: SnackBarAction(
             label: 'Close',
             onPressed: () {
@@ -59,6 +144,10 @@ class UserRepository extends GetxController {
           fullName: data["fullName"] ?? "",
           address: data["address"] ?? "",
           linkImage: data["imageLink"] ?? "",
+
+          memberShipPoint: data["membershipPoints"] ?? 0,
+          memberShipCurrentPoint: data["memberShipCurrentPoint"] ?? 0,
+          memberShipLevel: data["memberShipLevel"] ?? "Thành viên",
         );
       } else {
         print("Dữ liệu người dùng rỗng hoặc không tồn tại");
@@ -66,6 +155,23 @@ class UserRepository extends GetxController {
       }
     } else {
       print("Không tìm thấy tài liệu người dùng với ID: $id");
+      return null;
+    }
+  }
+
+  Future<AddressModel?> addAddressToList(
+    String userId,
+    AddressModel newAddress,
+  ) async {
+    try {
+      final userDoc = _db.collection('users').doc(userId);
+      final snapshot = await userDoc.get();
+      List<dynamic> currentAddresses = snapshot.data()?['addresses'] ?? [];
+      currentAddresses.add(newAddress.toJson());
+      await userDoc.update({'addresses': currentAddresses});
+      return newAddress;
+    } catch (e) {
+      print("Lỗi thêm địa chỉ: ${e.toString()}");
       return null;
     }
   }
@@ -79,17 +185,160 @@ class UserRepository extends GetxController {
     }
   }
 
-  Future<String?> updatePassword(String newPassword) async {
+  Future<void> updatePassword(String newPassword, String email) async {
     try {
-      User? user = _auth.currentUser;
-      if (user != null) {
-        await user.updatePassword(newPassword);
-        return null;
-      } else {
-        return "Người dùng chưa đăng nhập.";
+      // Kiểm tra xem email có tồn tại không
+      var methods = await _auth.fetchSignInMethodsForEmail(email);
+      if (methods.isEmpty) {
+        throw Exception("Không tìm thấy người dùng với email này");
       }
+
+      // Gửi email reset password
+      await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      return "Lỗi đổi mật khẩu: ${e.toString()}";
+      print("Lỗi cập nhật mật khẩu: ${e.toString()}");
+      throw e;
+    }
+  }
+
+  Future<String?> updateMembershipPoints(
+    String userId,
+    int additionalPoints,
+  ) async {
+    try {
+      final userDoc = await _db.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        return "Không tìm thấy người dùng";
+      }
+      int currentPoints = userDoc.data()?['membershipPoints'] ?? 0;
+
+      int newPoints = currentPoints + additionalPoints;
+
+      await _db.collection('users').doc(userId).update({
+        'membershipPoints': newPoints,
+      });
+
+      return null;
+    } catch (e) {
+      return "Lỗi cập nhật điểm thành viên: ${e.toString()}";
+    }
+  }
+
+  Future<String?> addMembershipCurrentPoints(
+    String userId,
+    int additionalPoints,
+  ) async {
+    try {
+      final userDoc = await _db.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        return "Không tìm thấy người dùng";
+      }
+      int currentPoints = userDoc.data()?['memberShipCurrentPoint'] ?? 0;
+
+      int newPoints = currentPoints + additionalPoints;
+
+      await _db.collection('users').doc(userId).update({
+        'memberShipCurrentPoint': newPoints,
+      });
+
+      return null;
+    } catch (e) {
+      return "Lỗi cập nhật điểm thành viên: ${e.toString()}";
+    }
+  }
+
+  Future<bool> getUser(String email) async {
+    try {
+      // Kiểm tra xem email có tồn tại trong Firebase Auth không
+      var methods = await _auth.fetchSignInMethodsForEmail(email);
+      return methods.isNotEmpty;
+    } catch (e) {
+      print("Lỗi kiểm tra người dùng: ${e.toString()}");
+      return false;
+    }
+  }
+
+  Future<String?> subtractMembershipCurrentPoints(
+    String userId,
+    int additionalPoints,
+  ) async {
+    try {
+      final userDoc = await _db.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        return "Không tìm thấy người dùng";
+      }
+      int currentPoints = userDoc.data()?['memberShipCurrentPoint'] ?? 0;
+
+      int newPoints = currentPoints - additionalPoints;
+
+      await _db.collection('users').doc(userId).update({
+        'memberShipCurrentPoint': newPoints,
+      });
+
+      return null;
+    } catch (e) {
+      return "Lỗi cập nhật điểm thành viên: ${e.toString()}";
+    }
+  }
+
+  Future<String?> subtractMembershipPoints(
+    String userId,
+    int pointsToSubtract,
+  ) async {
+    try {
+      final userDoc = await _db.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        return "Không tìm thấy người dùng";
+      }
+
+      int currentPoints = userDoc.data()?['membershipPoints'] ?? 0;
+
+      if (currentPoints < pointsToSubtract) {
+        return "Số điểm không đủ để thực hiện giao dịch";
+      }
+
+      int newPoints = currentPoints - pointsToSubtract;
+
+      await _db.collection('users').doc(userId).update({
+        'membershipPoints': newPoints,
+      });
+
+      return null;
+    } catch (e) {
+      return "Lỗi trừ điểm thành viên: ${e.toString()}";
+    }
+  }
+
+  Future<String?> updateMembershipLevel(String userId, String newLevel) async {
+    try {
+      await _db.collection('users').doc(userId).update({
+        'membershipLevel': newLevel,
+      });
+      return null;
+    } catch (e) {
+      return "Lỗi cập nhật cấp độ thành viên: ${e.toString()}";
+    }
+  }
+
+  Future<List<UserModel>> getAllUsers() async {
+    try {
+      final querySnapshot = await _db.collection("users").get();
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return UserModel(
+          id: doc.id,
+          email: data["email"] ?? "",
+          fullName: data["fullName"] ?? "",
+          address: data["address"],
+          linkImage: data["imageLink"],
+          memberShipPoint: data["membershipPoints"],
+          memberShipCurrentPoint: data["memberShipCurrentPoint"],
+          memberShipLevel: data["membershipLevel"],
+        );
+      }).toList();
+    } catch (e) {
+      print("Error getting all users: $e");
+      return [];
     }
   }
 }
