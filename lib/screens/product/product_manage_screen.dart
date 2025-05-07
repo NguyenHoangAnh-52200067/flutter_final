@@ -217,7 +217,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       itemCount: _allProducts.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.6,
+        childAspectRatio: 0.55, // Adjusted from 0.6 to give more vertical space
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
       ),
@@ -249,140 +249,90 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               );
             }
           },
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Card(
-                color: isSelected ? Colors.grey.withOpacity(0.2) : Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      height: 138,
+          child: Card(
+            color: isSelected ? Colors.grey.withOpacity(0.2) : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            elevation: 3,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    // Wrap the image container in Expanded
+                    child: Container(
                       width: double.infinity,
                       child: ImageUtils.buildImage(
                         product.images.isNotEmpty ? product.images[0] : null,
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 5,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Center(
-                            child: Text(
-                              product.productName,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          if (product.discount > 0) ...[
-                            Center(
-                              child: Text(
-                                Utils.formatCurrency(
-                                  product.price * (1 - product.discount / 100),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Center(
-                              child: Text(
-                                Utils.formatCurrency(product.price),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                            ),
-                          ] else
-                            Center(
-                              child: Text(
-                                Utils.formatCurrency(product.price),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ),
-                          if (_isSelecting)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Checkbox(
-                                  value: isSelected,
-                                  activeColor: Colors.blue,
-                                  onChanged: (selected) {
-                                    setState(() {
-                                      if (selected == true) {
-                                        _selectedProducts.add(product.id!);
-                                      } else {
-                                        _selectedProducts.remove(product.id!);
-                                      }
-                                    });
-                                  },
-                                ),
-                                if (isSelected && _selectedProducts.length == 1)
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Colors.black,
-                                    ),
-                                    onPressed: () => _editProduct(product),
-                                  ),
-                              ],
-                            ),
-                        ],
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    product.productName,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
-              ),
-
-              if (product.discount > 0)
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(10),
-                        bottomLeft: Radius.circular(10),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  // Price section
+                  if (product.discount > 0) ...[
+                    Text(
+                      Utils.formatCurrency(
+                        product.price * (1 - product.discount / 100),
                       ),
-                    ),
-                    child: Text(
-                      "-${product.discount}%",
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                        fontSize: 14,
+                        color: Colors.red,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ),
-            ],
+                    Text(
+                      Utils.formatCurrency(product.price),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ] else
+                    Text(
+                      Utils.formatCurrency(product.price),
+                      style: const TextStyle(fontSize: 14, color: Colors.red),
+                    ),
+                  if (_isSelecting)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: isSelected,
+                          activeColor: Colors.blue,
+                          onChanged: (selected) {
+                            setState(() {
+                              if (selected == true) {
+                                _selectedProducts.add(product.id!);
+                              } else {
+                                _selectedProducts.remove(product.id!);
+                              }
+                            });
+                          },
+                        ),
+                        if (isSelected && _selectedProducts.length == 1)
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.black),
+                            onPressed: () => _editProduct(product),
+                          ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
           ),
         );
       },
@@ -545,7 +495,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
 
   void _confirmDeleteMultipleProducts() {
     if (_selectedProducts.isEmpty) return;
-
     showDialog(
       context: context,
       builder:
@@ -561,7 +510,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               ),
               TextButton(
                 onPressed: () async {
-                  Navigator.pop(context, true);
+                  Navigator.pop(context);
 
                   for (String id in _selectedProducts) {
                     await _productRepo.deleteProduct(id);
@@ -572,7 +521,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                     _selectedProducts.clear();
                     _loadProducts();
                   });
-                  Navigator.pop(context);
                 },
                 child: const Text("Xóa", style: TextStyle(color: Colors.red)),
               ),
