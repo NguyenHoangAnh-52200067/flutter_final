@@ -1,10 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-// SCREEN
-import 'package:ecomerce_app/screens/auth/verifiy_otp_screen.dart';
-
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
@@ -17,76 +12,54 @@ class _LoginState extends State<ForgotPassword> {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  bool _isSigning = false;
+  bool _isLoading = false;
   final FocusNode _focusNode = FocusNode();
 
-  Future<void> _forgotPassword() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isSigning = true);
+  Future<void> _resetPassword() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      try {
-        String email = _emailController.text.trim();
+    setState(() => _isLoading = true);
 
-        final response = await http.post(
-          Uri.parse(
-              "http://127.0.0.1:5001/ecommerce-app-d91e7/us-central1/sendOtpEmail"),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({"email": email}),
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _emailController.text.trim(),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Link đặt lại mật khẩu đã được gửi đến email của bạn',
+            ),
+          ),
         );
-
-        print("Response status: ${response.statusCode}");
-        print("Response body: ${response.body}");
-
-        final responseData = jsonDecode(response.body);
-
-        setState(() => _isSigning = false);
-
-        if (response.statusCode == 200 && responseData['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(responseData['message'] ??
-                    'OTP đã được gửi tới email của bạn!')),
-          );
-
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('otp', responseData['otp'] ?? '');
-          await prefs.setInt('otp_time', DateTime.now().millisecondsSinceEpoch);
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => VerifyOTP(email: email)),
-          );
-        } else {
-          _showErrorMessage(responseData['message'] ?? 'Gửi OTP thất bại');
-        }
-      } catch (e) {
-        setState(() => _isSigning = false);
-        _showErrorMessage('Lỗi: ${e.toString()}');
+        Navigator.pop(context);
       }
+    } on FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'user-not-found':
+          message = 'Không tìm thấy tài khoản với email này.';
+          break;
+        case 'invalid-email':
+          message = 'Email không hợp lệ.';
+          break;
+        default:
+          message = e.message ?? 'Đã xảy ra lỗi.';
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      setState(() => _isLoading = false);
     }
-  }
-
-  void _showErrorMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _emailController.addListener(() {
-      setState(() {});
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-      ),
-      backgroundColor: Color(0xFF7AE582),
+      appBar: AppBar(backgroundColor: Colors.transparent),
+      backgroundColor: const Color(0xFF7AE582),
       body: Center(
         child: SingleChildScrollView(
           child: SizedBox(
@@ -97,16 +70,13 @@ class _LoginState extends State<ForgotPassword> {
                 const SizedBox(height: 30),
                 const Text(
                   'QUÊN MẬT KHẨU?',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: const Text(
-                    'Đừng lo lắng! Hãy nhập email của bạn đã đăng ký và chúng tôi sẽ gửi cho bạn mã để lấy lại mật khẩu',
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    'Đừng lo lắng! Hãy nhập email của bạn đã đăng ký và chúng tôi sẽ gửi cho bạn link để đặt lại mật khẩu',
                     style: TextStyle(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
@@ -125,20 +95,26 @@ class _LoginState extends State<ForgotPassword> {
                           decoration: InputDecoration(
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.white),
+                              borderSide: const BorderSide(color: Colors.white),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.deepPurple),
+                              borderSide: const BorderSide(
+                                color: Colors.deepPurple,
+                              ),
                             ),
                             hintText: 'Email',
                             fillColor: Colors.grey[200],
                             filled: true,
                           ),
                           validator: (String? value) {
-                            final RegExp emailRegExp =
-                                RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-                            if (!emailRegExp.hasMatch(value ?? '')) {
+                            if (value == null || value.isEmpty) {
+                              return 'Vui lòng nhập email';
+                            }
+                            final RegExp emailRegExp = RegExp(
+                              r'^[^@]+@[^@]+\.[^@]+$',
+                            );
+                            if (!emailRegExp.hasMatch(value)) {
                               _focusNode.requestFocus();
                               return 'Email không đúng định dạng';
                             }
@@ -150,9 +126,9 @@ class _LoginState extends State<ForgotPassword> {
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
                         child: ElevatedButton(
                           onPressed:
-                              (_emailController.text.isEmpty || _isSigning)
+                              (_emailController.text.isEmpty || _isLoading)
                                   ? null
-                                  : _forgotPassword,
+                                  : _resetPassword,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             foregroundColor: Colors.white,
@@ -163,13 +139,15 @@ class _LoginState extends State<ForgotPassword> {
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),
-                          child: _isSigning
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white)
-                              : const Text(
-                                  'GỬI YÊU CẦU',
-                                  style: TextStyle(fontSize: 18),
-                                ),
+                          child:
+                              _isLoading
+                                  ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                  : const Text(
+                                    'GỬI YÊU CẦU',
+                                    style: TextStyle(fontSize: 18),
+                                  ),
                         ),
                       ),
                     ],
@@ -181,5 +159,12 @@ class _LoginState extends State<ForgotPassword> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 }

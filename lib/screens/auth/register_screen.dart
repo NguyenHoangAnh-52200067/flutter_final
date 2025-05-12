@@ -1,10 +1,11 @@
+import 'package:ecomerce_app/models/address_model.dart';
+import 'package:ecomerce_app/repository/address_repository.dart';
 import 'package:ecomerce_app/screens/widgets/button_input/custom_button.dart';
 import 'package:ecomerce_app/services/address_api_service.dart';
 import 'package:flutter/material.dart';
 // SCREEN
 import 'package:ecomerce_app/screens/auth/login_screen.dart';
 // WIDGET
-import 'package:ecomerce_app/screens/widgets/form/address_form.dart';
 import 'package:ecomerce_app/screens/widgets/button_input/input_field.dart';
 // MODEL REPO
 import 'package:ecomerce_app/models/user_model.dart';
@@ -12,6 +13,10 @@ import 'package:ecomerce_app/repository/user_repository.dart';
 // FIREBASE
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ecomerce_app/services/firebase_auth_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:uuid/uuid.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -23,33 +28,101 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final FirebaseAuthService _auth = FirebaseAuthService();
   final UserRepository _userRepo = UserRepository();
-  final AddressApiService _addressApiService = AddressApiService();
-
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _fullNameController = TextEditingController();
-  final _addressController = TextEditingController();
   final _passwordController = TextEditingController();
   final cfpasswordController = TextEditingController();
-  List<String> _addressSug = [];
-
+  final AddressRepository _addressRepository = AddressRepository();
   final _formKey = GlobalKey<FormState>();
   final FocusNode _email = FocusNode();
   final FocusNode _password = FocusNode();
   final FocusNode _cfpassword = FocusNode();
+  final String apiKey = 'KeONrT42qDbhvyFK5oLjywhE0EAcrxeHh0NTznDz';
+
+  List<dynamic> _suggestions = [];
+  TextEditingController addressController = TextEditingController();
+  TextEditingController cityController = TextEditingController();
+  TextEditingController districtController = TextEditingController();
+  TextEditingController wardController = TextEditingController();
+  TextEditingController streetController = TextEditingController();
+  TextEditingController localController = TextEditingController();
+  final AddressApiService addressApiService = AddressApiService();
+  final Uuid uuid = Uuid();
 
   bool _obscureTextPassword = true;
   bool _obscureTextCFPassword = true;
   bool _isSigningUp = false;
+  final List<AddressModel> _addresses = [];
 
-  void _onAddressChanged(String address) {
-    print("DIA CHI NHAP: $address");
-    _addressApiService.deplayedSearchReq(address, (onResult) {
+  String city = "";
+  String district = "";
+  String ward = "";
+  String street = "";
+  String local = "";
+
+  void _saveAddress(String userId) async {
+    AddressModel newAddress = AddressModel(
+      addressId: uuid.v4(),
+      isDefault: true,
+      userId: userId,
+      city: city,
+      district: district,
+      ward: ward,
+      street: street,
+      local: local,
+      fullAddress: addressController.text,
+      userName: _fullNameController.text,
+      userPhone: _emailController.text,
+      userMail: _emailController.text,
+    );
+
+    _addressRepository.saveAddress(newAddress);
+    _addresses.add(newAddress);
+    setState(() {});
+  }
+
+  void _onSearchChanged(String query) {
+    addressApiService.debounceSearch(query, (suggestions) {
       setState(() {
-        _addressController.text = address;
-        _addressSug = onResult;
+        _suggestions = suggestions;
       });
-      print("Dia chi goi y: $onResult");
     });
+  }
+
+  Future<void> fetchAddressDetails(String placeId) async {
+    final response = await http.get(
+      Uri.parse(
+        'https://rsapi.goong.io/Place/Detail?place_id=$placeId&api_key=$apiKey',
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['status'] == 'OK' && data['result'] != null) {
+        final result = data['result'];
+
+        String fullAddress = result['formatted_address'] ?? '';
+        List<String> addressParts = fullAddress.split(',');
+        String localAddress = result['name'] ?? '';
+
+        setState(() {
+          city = addressParts.length > 2 ? addressParts.last.trim() : '';
+          district =
+              addressParts.length > 1
+                  ? addressParts[addressParts.length - 2].trim()
+                  : '';
+          ward =
+              addressParts.isNotEmpty
+                  ? addressParts[addressParts.length - 3].trim()
+                  : '';
+          street = addressParts.isNotEmpty ? addressParts[1].trim() : '';
+          local = localAddress;
+        });
+      }
+    } else {
+      print('Lỗi khi lấy dữ liệu địa chỉ');
+    }
   }
 
   void _signUpScreen() async {
@@ -59,7 +132,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     String email = _emailController.text.trim();
     String fullName = _fullNameController.text.trim();
     String password = _passwordController.text;
-    String address = _addressController.text.trim();
 
     try {
       User? user = await _auth.createUserWithEmailAndPassword(
@@ -70,14 +142,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (user != null) {
         print("User created successfully");
-
+        _saveAddress(user.uid);
         UserModel newUser = UserModel(
           id: user.uid,
           fullName: fullName,
           email: email,
-          address: address,
           linkImage: "",
         );
+
         await _userRepo.createUser(context, newUser);
 
         Navigator.pushReplacement(
@@ -86,7 +158,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
       }
     } catch (e) {
-      print("Error: $e");
+      print("Lỗi tại vì: $e");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Đăng ký thất bại: $e")));
@@ -232,13 +304,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   return null;
                                 },
                               ),
-                              InputField(
-                                controller: _addressController,
-                                hintText: 'Địa chỉ',
-                                icon: Icons.map,
-                                onChanged: _onAddressChanged,
+
+                              // Address input field with suggestions
+                              SizedBox(
+                                width: 365,
+                                child: TextField(
+                                  controller: addressController,
+                                  keyboardType: TextInputType.text,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    hintText: "Địa chỉ",
+                                    prefixIcon: Icon(Icons.location_on),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                    ),
+                                  ),
+                                  onChanged: _onSearchChanged,
+                                ),
                               ),
-                              if (_addressSug.isNotEmpty)
+                              if (_suggestions.isNotEmpty)
                                 Positioned(
                                   top: 67,
                                   left: 25,
@@ -261,19 +346,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       child: SingleChildScrollView(
                                         child: Column(
                                           children:
-                                              _addressSug.map((suggestion) {
-                                                return Material(
-                                                  color: Colors.transparent,
-                                                  child: ListTile(
-                                                    title: Text(suggestion),
-                                                    onTap: () {
-                                                      _addressController.text =
-                                                          suggestion;
-                                                      setState(() {
-                                                        _addressSug = [];
-                                                      });
-                                                    },
+                                              _suggestions.map((suggestion) {
+                                                return ListTile(
+                                                  title: Text(
+                                                    suggestion['description'],
                                                   ),
+                                                  onTap: () {
+                                                    addressController.text =
+                                                        suggestion['description'];
+                                                    fetchAddressDetails(
+                                                      suggestion['place_id'],
+                                                    );
+                                                    setState(() {
+                                                      _suggestions = [];
+                                                    });
+                                                  },
                                                 );
                                               }).toList(),
                                         ),
@@ -281,7 +368,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     ),
                                   ),
                                 ),
+                              InputField(
+                                controller: _phoneController,
+                                hintText: 'Số điện thoại',
+                                icon: Icons.phone,
+                                keyboardType: TextInputType.phone,
+                                textInputAction: TextInputAction.next,
+                                isPassword: true,
 
+                                // validator: (String? value) {
+                                //   if (value == null || value.length < 6) {
+                                //     _password.requestFocus();
+                                //     return "Password should have at least 6 characters";
+                                //   }
+                                //   return null;
+                                // },
+                              ),
+                              ///////////////////////////////////////////////////////////////////////////////////////////////////////
                               InputField(
                                 controller: _passwordController,
                                 focusNode: _password,

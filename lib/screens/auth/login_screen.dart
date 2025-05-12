@@ -1,16 +1,17 @@
-import 'package:ecommerce_app/screens/widgets/button_input/custom_button.dart';
-import 'package:ecommerce_app/screens/widgets/button_input/input_field.dart';
+import 'package:ecomerce_app/repository/user_repository.dart';
+import 'package:ecomerce_app/screens/widgets/button_input/custom_button.dart';
+import 'package:ecomerce_app/screens/widgets/button_input/input_field.dart';
 import 'package:flutter/material.dart';
 // SCREEN
-import 'package:ecommerce_app/home.dart';
+import 'package:ecomerce_app/home.dart';
 import 'package:ecomerce_app/screens/auth/forgot_password_screen.dart';
 import 'package:ecomerce_app/screens/auth/register_screen.dart';
 import 'package:ecomerce_app/screens/admin/admin_home_screen.dart';
 // LIB
 import 'package:flutter_social_button/flutter_social_button.dart';
 // FIREBASE
+import 'package:ecomerce_app/services/firebase_auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ecommerce_app/services/firebase_auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final UserRepository _userRepository = UserRepository();
   bool _obscureTextPassword = true;
   bool _isSigning = false;
   final FocusNode _focusNodeEmail = FocusNode();
@@ -44,19 +46,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
+    bool isBanned = await _userRepository.isUserBannedByEmail(email);
 
+    if (isBanned) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Tài khoản của bạn đã bị khóa! Vui lòng liên hệ với chúng tôi để biết thêm thông tin",
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() {
+        _isSigning = false;
+      });
+      return;
+    }
+    User? user = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
     if (email == "admin@gmail.com" && password == "admin123") {
       await _auth.setLoggedIn(true);
       await _auth.setUserRole('admin');
       _navigateToScreen(const AdminHomeScreen(), "Đăng nhập Admin thành công!");
       return;
     }
-
-    User? user = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-
     if (user != null) {
       await _auth.setLoggedIn(true);
       await _auth.setUserRole('user');
@@ -121,7 +137,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => SignUpScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => SignUpScreen(),
+                            ),
                           );
                         },
                         backgroundColor: const Color(0xFF7AE582),

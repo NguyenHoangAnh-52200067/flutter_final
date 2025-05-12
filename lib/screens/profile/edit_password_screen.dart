@@ -1,4 +1,4 @@
-import 'package:ecommerce_app/repository/user_repository.dart';
+import 'package:ecomerce_app/repository/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,115 +13,65 @@ class _EditPasswordScreenState extends State<EditPasswordScreen> {
   final User? user = FirebaseAuth.instance.currentUser;
   final UserRepository _userRepo = UserRepository();
 
-  final _oldPasswordController = TextEditingController();
+  final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmNewPasswordController = TextEditingController();
 
-  bool _isOldPasswordObscure = true;
+  bool _isCurrentPasswordObscure = true;
   bool _isNewPasswordObscure = true;
   bool _isConfirmPasswordObscure = true;
 
-  bool _isChangingPassword = false;
-  bool _isEditing = false;
   bool _isLoading = false;
+
+  bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
   }
 
-  void _changePassword() async {
-    setState(() {
-      _isChangingPassword = true;
-    });
-
-    String oldPassword = _oldPasswordController.text.trim();
-    String newPassword = _newPasswordController.text.trim();
-    String confirmPassword = _confirmNewPasswordController.text.trim();
-
-    if (oldPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Vui lòng nhập đầy đủ thông tin")),
-      );
-      setState(() => _isChangingPassword = false);
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Mật khẩu mới phải có ít nhất 6 ký tự")),
-      );
-      setState(() => _isChangingPassword = false);
-      return;
-    }
-
-    if (newPassword == oldPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Mật khẩu mới không được trùng với mật khẩu cũ"),
-        ),
-      );
-      setState(() => _isChangingPassword = false);
-      return;
-    }
-
-    if (newPassword != confirmPassword) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Mật khẩu mới không khớp")));
-      setState(() => _isChangingPassword = false);
-      return;
-    }
+  Future<void> _changePassword() async {
+    setState(() => _isLoading = true);
 
     try {
       User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Không tìm thấy tài khoản")),
+      if (user != null) {
+        // Xác thực lại với mật khẩu cũ
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: _currentPasswordController.text,
         );
-        setState(() => _isChangingPassword = false);
-        return;
+
+        await user.reauthenticateWithCredential(credential);
+
+        // Đổi mật khẩu mới
+        await user.updatePassword(_newPasswordController.text);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đổi mật khẩu thành công')),
+          );
+          Navigator.pop(context);
+        }
       }
-
-      AuthCredential credential = EmailAuthProvider.credential(
-        email: user.email!,
-        password: oldPassword,
-      );
-
-      await user.reauthenticateWithCredential(credential);
-
-      await user.updatePassword(newPassword);
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Đổi mật khẩu thành công!")));
-
-      _oldPasswordController.clear();
-      _newPasswordController.clear();
-      _confirmNewPasswordController.clear();
     } on FirebaseAuthException catch (e) {
-      String errorMessage = "Lỗi không xác định";
-
-      if (e.code == "wrong-password" || e.code == "invalid-credential") {
-        errorMessage = "Mật khẩu cũ không đúng";
-      } else if (e.code == "weak-password") {
-        errorMessage = "Mật khẩu mới quá yếu";
-      } else if (e.code == "requires-recent-login") {
-        errorMessage = "Vui lòng đăng nhập lại trước khi đổi mật khẩu";
+      String message;
+      switch (e.code) {
+        case 'wrong-password':
+          message = 'Mật khẩu hiện tại không đúng.';
+          break;
+        case 'weak-password':
+          message = 'Mật khẩu mới quá yếu.';
+          break;
+        default:
+          message = e.message ?? 'Đã xảy ra lỗi.';
       }
-
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Lỗi: ${e.toString()}")));
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      setState(() => _isLoading = false);
     }
-
-    setState(() {
-      _isChangingPassword = false;
-    });
   }
 
   Widget _buildPasswordField(
@@ -253,12 +203,12 @@ class _EditPasswordScreenState extends State<EditPasswordScreen> {
           children: [
             _buildCard("Mật khẩu", [
               _buildPasswordField(
-                "Mật khẩu cũ",
-                _oldPasswordController,
-                _isOldPasswordObscure,
+                "Mật khẩu hiện tại",
+                _currentPasswordController,
+                _isCurrentPasswordObscure,
                 () {
                   setState(() {
-                    _isOldPasswordObscure = !_isOldPasswordObscure;
+                    _isCurrentPasswordObscure = !_isCurrentPasswordObscure;
                   });
                 },
               ),
@@ -284,7 +234,7 @@ class _EditPasswordScreenState extends State<EditPasswordScreen> {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: _isChangingPassword ? null : _changePassword,
+                onPressed: _isLoading ? null : _changePassword,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
@@ -296,7 +246,7 @@ class _EditPasswordScreenState extends State<EditPasswordScreen> {
                   ),
                 ),
                 child:
-                    _isChangingPassword
+                    _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                           "Đổi mật khẩu",
