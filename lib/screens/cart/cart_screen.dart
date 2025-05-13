@@ -1,10 +1,10 @@
-import 'package:ecomerce_app/home.dart';
-import 'package:ecomerce_app/models/cart_model.dart';
-import 'package:ecomerce_app/models/cartitems_model.dart';
-import 'package:ecomerce_app/repository/cart_repository.dart';
-import 'package:ecomerce_app/repository/product_repository.dart';
-import 'package:ecomerce_app/screens/cart/checkout_screen.dart';
-import 'package:ecomerce_app/utils/utils.dart';
+import 'package:ecommerce_app/home.dart';
+import 'package:ecommerce_app/models/cart_model.dart';
+import 'package:ecommerce_app/models/cartitems_model.dart';
+import 'package:ecommerce_app/repository/cart_repository.dart';
+import 'package:ecommerce_app/repository/product_repository.dart';
+import 'package:ecommerce_app/screens/cart/checkout_screen.dart';
+import 'package:ecommerce_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 class CartScreen extends StatefulWidget {

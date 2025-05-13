@@ -1,9 +1,10 @@
-import 'package:ecomerce_app/models/product_model.dart';
-import 'package:ecomerce_app/models/voucher_model.dart';
-import 'package:ecomerce_app/repository/voucher_repository.dart';
+import 'package:ecommerce_app/models/order_model.dart';
+import 'package:ecommerce_app/models/product_model.dart';
+import 'package:ecommerce_app/models/voucher_model.dart';
+import 'package:ecommerce_app/repository/voucher_repository.dart';
+import 'package:ecommerce_app/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:ecomerce_app/models/order_model.dart';
-import 'package:ecomerce_app/utils/utils.dart';
+
 import 'package:intl/intl.dart';
 
 class OrderDetailScreen extends StatefulWidget {

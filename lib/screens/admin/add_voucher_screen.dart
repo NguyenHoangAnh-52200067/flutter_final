@@ -1,4 +1,4 @@
-import 'package:ecomerce_app/utils/utils.dart';
+import 'package:ecommerce_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';

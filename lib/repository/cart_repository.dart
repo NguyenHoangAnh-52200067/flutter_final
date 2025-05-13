@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ecomerce_app/models/cart_model.dart';
-import 'package:ecomerce_app/models/cartitems_model.dart';
+import 'package:ecommerce_app/models/cart_model.dart';
+import 'package:ecommerce_app/models/cartitems_model.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 

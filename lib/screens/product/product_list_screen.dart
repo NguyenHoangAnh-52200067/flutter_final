@@ -1,8 +1,8 @@
-import 'package:ecomerce_app/models/product_model.dart';
-import 'package:ecomerce_app/repository/product_repository.dart';
-import 'package:ecomerce_app/screens/product/edit_product_screen.dart';
-import 'package:ecomerce_app/screens/product/product_detail_screen.dart';
-import 'package:ecomerce_app/utils/utils.dart';
+import 'package:ecommerce_app/models/product_model.dart';
+import 'package:ecommerce_app/repository/product_repository.dart';
+import 'package:ecommerce_app/screens/product/edit_product_screen.dart';
+import 'package:ecommerce_app/screens/product/product_detail_screen.dart';
+import 'package:ecommerce_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 

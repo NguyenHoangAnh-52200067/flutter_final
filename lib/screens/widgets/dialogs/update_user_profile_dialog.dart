@@ -1,10 +1,11 @@
 import 'dart:io';
-import 'package:ecomerce_app/utils/image_upload.dart';
+
+import 'package:ecommerce_app/models/user_model.dart';
+import 'package:ecommerce_app/repository/user_repository.dart';
+import 'package:ecommerce_app/utils/image_upload.dart';
+import 'package:ecommerce_app/utils/image_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:ecomerce_app/models/user_model.dart';
-import 'package:ecomerce_app/repository/user_repository.dart';
-import 'package:ecomerce_app/utils/image_utils.dart';
 
 class UpdateUserProfileDialog extends StatefulWidget {
   final UserModel user;

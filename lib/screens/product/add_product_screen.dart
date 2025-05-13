@@ -1,9 +1,10 @@
 import 'dart:io';
-import 'package:ecomerce_app/models/category_model.dart';
-import 'package:ecomerce_app/models/product_model.dart';
-import 'package:ecomerce_app/repository/category_repository.dart';
-import 'package:ecomerce_app/repository/product_repository.dart';
-import 'package:ecomerce_app/utils/image_upload.dart';
+
+import 'package:ecommerce_app/models/category_model.dart';
+import 'package:ecommerce_app/models/product_model.dart';
+import 'package:ecommerce_app/repository/category_repository.dart';
+import 'package:ecommerce_app/repository/product_repository.dart';
+import 'package:ecommerce_app/utils/image_upload.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';

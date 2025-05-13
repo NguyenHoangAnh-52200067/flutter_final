@@ -1,4 +1,4 @@
-import 'package:ecomerce_app/screens/dashboard/dashboard_screen.dart';
+import 'package:ecommerce_app/screens/dashboard/dashboard_screen.dart';
 import 'package:ecommerce_app/screens/setting/setting_screen.dart';
 import 'package:ecommerce_app/screens/widgets/appbar/custom_bottombar.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +12,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  final List<Widget> _pages = [
-    const DashboardScreen(),
-    const SettingScreen(),
-  ];
+  final List<Widget> _pages = [const DashboardScreen(), const SettingScreen()];
 
   void _onTabChange(int index) {
     setState(() {

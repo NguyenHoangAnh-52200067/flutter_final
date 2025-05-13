@@ -1,7 +1,7 @@
-import 'package:ecomerce_app/models/category_model.dart';
-import 'package:ecomerce_app/screens/widgets/grid/category_products_grid.dart';
-import 'package:ecomerce_app/screens/widgets/image_text_widget/vertical_image_text.dart';
-import 'package:ecomerce_app/utils/image_utils.dart';
+import 'package:ecommerce_app/models/category_model.dart';
+import 'package:ecommerce_app/screens/widgets/grid/category_products_grid.dart';
+import 'package:ecommerce_app/screens/widgets/image_text_widget/vertical_image_text.dart';
+import 'package:ecommerce_app/utils/image_utils.dart';
 import 'package:flutter/material.dart';
 
 class HomeCategories extends StatelessWidget {

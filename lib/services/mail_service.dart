@@ -1,5 +1,5 @@
-import 'package:ecomerce_app/models/product_model.dart';
-import 'package:ecomerce_app/utils/utils.dart';
+import 'package:ecommerce_app/models/product_model.dart';
+import 'package:ecommerce_app/utils/utils.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
 

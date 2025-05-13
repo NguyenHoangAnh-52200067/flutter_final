@@ -1,8 +1,8 @@
+import 'package:ecommerce_app/home.dart';
+import 'package:ecommerce_app/screens/admin/admin_home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import 'package:ecomerce_app/home.dart';
-import 'package:ecomerce_app/screens/admin/admin_home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

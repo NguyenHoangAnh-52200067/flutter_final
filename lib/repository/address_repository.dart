@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ecomerce_app/models/address_model.dart';
+import 'package:ecommerce_app/models/address_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AddressRepository {

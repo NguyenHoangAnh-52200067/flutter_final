@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:ecomerce_app/models/product_model.dart';
-import 'package:ecomerce_app/repository/product_repository.dart';
-import 'package:ecomerce_app/screens/widgets/card/product_card.dart';
+import 'package:ecommerce_app/models/product_model.dart';
+import 'package:ecommerce_app/repository/product_repository.dart';
+import 'package:ecommerce_app/screens/widgets/card/product_card.dart';
 
 class CategoryProductsGrid extends StatefulWidget {
   final String categoryName;

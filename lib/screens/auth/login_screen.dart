@@ -1,16 +1,18 @@
-import 'package:ecomerce_app/repository/user_repository.dart';
-import 'package:ecomerce_app/screens/widgets/button_input/custom_button.dart';
-import 'package:ecomerce_app/screens/widgets/button_input/input_field.dart';
+import 'package:ecommerce_app/home.dart';
+import 'package:ecommerce_app/repository/user_repository.dart';
+import 'package:ecommerce_app/screens/admin/admin_home_screen.dart';
+import 'package:ecommerce_app/screens/auth/forgot_password_screen.dart';
+import 'package:ecommerce_app/screens/auth/register_screen.dart';
+import 'package:ecommerce_app/screens/widgets/button_input/custom_button.dart';
+import 'package:ecommerce_app/screens/widgets/button_input/input_field.dart';
+import 'package:ecommerce_app/services/firebase_auth_service.dart';
 import 'package:flutter/material.dart';
 // SCREEN
-import 'package:ecomerce_app/home.dart';
-import 'package:ecomerce_app/screens/auth/forgot_password_screen.dart';
-import 'package:ecomerce_app/screens/auth/register_screen.dart';
-import 'package:ecomerce_app/screens/admin/admin_home_screen.dart';
+
 // LIB
 import 'package:flutter_social_button/flutter_social_button.dart';
 // FIREBASE
-import 'package:ecomerce_app/services/firebase_auth_service.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {

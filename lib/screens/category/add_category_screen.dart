@@ -1,6 +1,6 @@
-import 'package:ecomerce_app/models/category_model.dart';
-import 'package:ecomerce_app/repository/category_repository.dart';
-import 'package:ecomerce_app/utils/image_upload.dart';
+import 'package:ecommerce_app/models/category_model.dart';
+import 'package:ecommerce_app/repository/category_repository.dart';
+import 'package:ecommerce_app/utils/image_upload.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';

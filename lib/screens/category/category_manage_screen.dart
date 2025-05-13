@@ -1,8 +1,8 @@
-import 'package:ecomerce_app/models/category_model.dart';
-import 'package:ecomerce_app/repository/category_repository.dart';
-import 'package:ecomerce_app/screens/category/add_category_screen.dart';
-import 'package:ecomerce_app/screens/product/product_list_screen.dart';
-import 'package:ecomerce_app/utils/image_utils.dart';
+import 'package:ecommerce_app/models/category_model.dart';
+import 'package:ecommerce_app/repository/category_repository.dart';
+import 'package:ecommerce_app/screens/category/add_category_screen.dart';
+import 'package:ecommerce_app/screens/product/product_list_screen.dart';
+import 'package:ecommerce_app/utils/image_utils.dart';
 import 'package:flutter/material.dart';
 
 class CategoryManagementScreen extends StatefulWidget {
@@ -284,29 +284,29 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                 ),
                 const SizedBox(height: 5),
                 if (_isSelecting)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Checkbox(
-                      value: isSelected,
-                      activeColor: Colors.blue,
-                      onChanged: (selected) {
-                        setState(() {
-                          if (selected == true) {
-                            _selectedCategories.add(parent.id!);
-                          } else {
-                            _selectedCategories.remove(parent.id!);
-                          }
-                        });
-                      },
-                    ),
-                    if (isSelected && _selectedCategories.length == 1)
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.black),
-                        onPressed: () => _editCategory(parent),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Checkbox(
+                        value: isSelected,
+                        activeColor: Colors.blue,
+                        onChanged: (selected) {
+                          setState(() {
+                            if (selected == true) {
+                              _selectedCategories.add(parent.id!);
+                            } else {
+                              _selectedCategories.remove(parent.id!);
+                            }
+                          });
+                        },
                       ),
-                  ],
-                ),
+                      if (isSelected && _selectedCategories.length == 1)
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.black),
+                          onPressed: () => _editCategory(parent),
+                        ),
+                    ],
+                  ),
               ],
             ),
           ),

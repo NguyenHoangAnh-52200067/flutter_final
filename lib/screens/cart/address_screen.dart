@@ -1,9 +1,9 @@
-import 'package:ecomerce_app/models/address_model.dart';
-import 'package:ecomerce_app/models/user_model.dart';
-import 'package:ecomerce_app/repository/address_repository.dart';
-import 'package:ecomerce_app/repository/user_repository.dart';
-import 'package:ecomerce_app/screens/cart/edit_address_screen.dart';
-import 'package:ecomerce_app/screens/cart/new_address_screen.dart';
+import 'package:ecommerce_app/models/address_model.dart';
+import 'package:ecommerce_app/models/user_model.dart';
+import 'package:ecommerce_app/repository/address_repository.dart';
+import 'package:ecommerce_app/repository/user_repository.dart';
+import 'package:ecommerce_app/screens/cart/edit_address_screen.dart';
+import 'package:ecommerce_app/screens/cart/new_address_screen.dart';
 import 'package:flutter/material.dart';
 
 class AddressScreen extends StatefulWidget {

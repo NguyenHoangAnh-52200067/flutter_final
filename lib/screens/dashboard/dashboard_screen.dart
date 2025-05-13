@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ecomerce_app/models/category_model.dart';
-import 'package:ecomerce_app/models/user_model.dart';
-import 'package:ecomerce_app/repository/category_repository.dart';
-import 'package:ecomerce_app/repository/user_repository.dart';
-import 'package:ecomerce_app/screens/cart/voucher_screen.dart';
-import 'package:ecomerce_app/screens/dashboard/dashboard_product_list_screen.dart';
-import 'package:ecomerce_app/screens/widgets/appbar/home_appbar.dart';
-import 'package:ecomerce_app/screens/widgets/banner/banner_widget.dart';
-import 'package:ecomerce_app/screens/widgets/form/header_container.dart';
-import 'package:ecomerce_app/screens/widgets/form/home_category.dart';
-import 'package:ecomerce_app/screens/widgets/search/search_container.dart';
-import 'package:ecomerce_app/screens/widgets/text/section_heading_1.dart';
+import 'package:ecommerce_app/models/category_model.dart';
+import 'package:ecommerce_app/models/user_model.dart';
+import 'package:ecommerce_app/repository/category_repository.dart';
+import 'package:ecommerce_app/repository/user_repository.dart';
+import 'package:ecommerce_app/screens/cart/voucher_screen.dart';
+import 'package:ecommerce_app/screens/dashboard/dashboard_product_list_screen.dart';
+import 'package:ecommerce_app/screens/widgets/appbar/home_appbar.dart';
+import 'package:ecommerce_app/screens/widgets/banner/banner_widget.dart';
+import 'package:ecommerce_app/screens/widgets/form/header_container.dart';
+import 'package:ecommerce_app/screens/widgets/form/home_category.dart';
+import 'package:ecommerce_app/screens/widgets/search/search_container.dart';
+import 'package:ecommerce_app/screens/widgets/text/section_heading_1.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

@@ -1,4 +1,4 @@
-import 'package:ecomerce_app/models/cartitems_model.dart';
+import 'package:ecommerce_app/models/cartitems_model.dart';
 
 class Cart {
   String userId;

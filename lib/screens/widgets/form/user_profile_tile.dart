@@ -1,5 +1,5 @@
-import 'package:ecomerce_app/screens/profile/edit_profile_screen.dart';
-import 'package:ecomerce_app/utils/image_utils.dart';
+import 'package:ecommerce_app/screens/profile/edit_profile_screen.dart';
+import 'package:ecommerce_app/utils/image_utils.dart';
 import 'package:flutter/material.dart';
 
 class UserProfileTile extends StatelessWidget {

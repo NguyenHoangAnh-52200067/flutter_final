@@ -1,11 +1,10 @@
 import 'dart:math';
 
-import 'package:cloud_functions/cloud_functions.dart';
-import 'package:ecomerce_app/repository/address_repository.dart';
-import 'package:ecomerce_app/screens/widgets/dialogs/update_user_profile_dialog.dart';
+import 'package:ecommerce_app/models/user_model.dart';
+import 'package:ecommerce_app/repository/address_repository.dart';
+import 'package:ecommerce_app/repository/user_repository.dart';
+import 'package:ecommerce_app/screens/widgets/dialogs/update_user_profile_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:ecomerce_app/models/user_model.dart';
-import 'package:ecomerce_app/repository/user_repository.dart';
 
 class AdminUserManagementScreen extends StatefulWidget {
   const AdminUserManagementScreen({super.key});

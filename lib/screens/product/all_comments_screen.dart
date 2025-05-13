@@ -1,8 +1,8 @@
+import 'package:ecommerce_app/models/comment_model.dart';
+import 'package:ecommerce_app/models/product_model.dart';
+import 'package:ecommerce_app/repository/comment_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ecomerce_app/models/comment_model.dart';
-import 'package:ecomerce_app/models/product_model.dart';
-import 'package:ecomerce_app/repository/comment_repository.dart';
 
 class AllCommentsScreen extends StatefulWidget {
   final ProductModel product;

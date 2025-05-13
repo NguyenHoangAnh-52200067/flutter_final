@@ -1,6 +1,6 @@
-import 'package:ecomerce_app/models/address_model.dart';
-import 'package:ecomerce_app/models/user_model.dart';
-import 'package:ecomerce_app/repository/guest_user_repository.dart';
+import 'package:ecommerce_app/models/address_model.dart';
+import 'package:ecommerce_app/models/user_model.dart';
+import 'package:ecommerce_app/repository/guest_user_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

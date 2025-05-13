@@ -1,18 +1,17 @@
-import 'package:ecomerce_app/models/address_model.dart';
-import 'package:ecomerce_app/repository/address_repository.dart';
-import 'package:ecomerce_app/screens/widgets/button_input/custom_button.dart';
-import 'package:ecomerce_app/services/address_api_service.dart';
+import 'package:ecommerce_app/models/address_model.dart';
+import 'package:ecommerce_app/models/user_model.dart';
+import 'package:ecommerce_app/repository/address_repository.dart';
+import 'package:ecommerce_app/repository/user_repository.dart';
+import 'package:ecommerce_app/screens/auth/login_screen.dart';
+import 'package:ecommerce_app/screens/widgets/button_input/custom_button.dart';
+import 'package:ecommerce_app/screens/widgets/button_input/input_field.dart';
+import 'package:ecommerce_app/services/address_api_service.dart';
+import 'package:ecommerce_app/services/firebase_auth_service.dart';
 import 'package:flutter/material.dart';
-// SCREEN
-import 'package:ecomerce_app/screens/auth/login_screen.dart';
-// WIDGET
-import 'package:ecomerce_app/screens/widgets/button_input/input_field.dart';
-// MODEL REPO
-import 'package:ecomerce_app/models/user_model.dart';
-import 'package:ecomerce_app/repository/user_repository.dart';
+
 // FIREBASE
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ecomerce_app/services/firebase_auth_service.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 

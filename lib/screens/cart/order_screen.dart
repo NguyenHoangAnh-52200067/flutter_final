@@ -1,10 +1,10 @@
 import 'dart:math';
 
-import 'package:ecomerce_app/models/order_model.dart';
-import 'package:ecomerce_app/models/product_model.dart';
-import 'package:ecomerce_app/repository/order_repository.dart';
-import 'package:ecomerce_app/screens/cart/order_detail_screen.dart';
-import 'package:ecomerce_app/utils/utils.dart';
+import 'package:ecommerce_app/models/order_model.dart';
+import 'package:ecommerce_app/models/product_model.dart';
+import 'package:ecommerce_app/repository/order_repository.dart';
+import 'package:ecommerce_app/screens/cart/order_detail_screen.dart';
+import 'package:ecommerce_app/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 

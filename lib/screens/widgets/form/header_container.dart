@@ -1,5 +1,5 @@
-import 'package:ecomerce_app/screens/widgets/custom_shape/custom_circular.dart';
-import 'package:ecomerce_app/screens/widgets/form/curved_widget.dart';
+import 'package:ecommerce_app/screens/widgets/custom_shape/custom_circular.dart';
+import 'package:ecommerce_app/screens/widgets/form/curved_widget.dart';
 import 'package:flutter/material.dart';
 
 class HeaderContainer extends StatelessWidget {
