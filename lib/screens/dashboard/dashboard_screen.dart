@@ -149,6 +149,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Map<String, double> categoryMaxPrice = {};
 
     if (categories.isEmpty) {
+      print("Không có danh mục");
       return;
     }
 
