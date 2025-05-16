@@ -58,11 +58,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // App Bar
                     HomeAppBar(fullName: _fullName),
                     const SizedBox(height: 15),
-
                     // Search Bar
                     SearchContainer(text: 'Tìm kiếm trong cửa hàng'),
                     const SizedBox(height: 15),
-
                     // Categories
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 10),

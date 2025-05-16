@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/screens/product/search_product_screen.dart';
 import 'package:flutter/material.dart';
 
 class SearchContainer extends StatelessWidget {
@@ -16,7 +17,11 @@ class SearchContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
     return GestureDetector(
-      onTap: onTap,
+      onTap:
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SearchProductScreen()),
+          ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28.0),
         child: Container(

@@ -114,7 +114,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         return;
       }
       if (discount > 0) {
-        price = double.parse(_priceController.text.trim());
+        price = price;
         discount = double.parse(_discountController.text.trim());
         price = price - (price * discount / 100);
         if (price < costPrice) {
