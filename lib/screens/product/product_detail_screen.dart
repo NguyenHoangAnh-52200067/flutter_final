@@ -83,7 +83,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _loadUserId() async {
-    final id = await _userRepo.getEffectiveUserId(); // Get the ID
+    final id = await _userRepo.getEffectiveUserId();
     if (mounted) {
       setState(() {
         userId = id;
@@ -114,7 +114,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         int tmpQuantity = 1;
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
-            // renamed setState to setModalState
             return Container(
               padding: const EdgeInsets.all(16),
               height: MediaQuery.of(context).size.height * 0.7,
@@ -442,7 +441,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       child: ElevatedButton(
                         onPressed:
                             stock == 0
-                                ? null // Disable button when stock is 0
+                                ? null
                                 : () {
                                   setState(() {
                                     quantity = tmpQuantity;
@@ -479,16 +478,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 },
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
-                              stock == 0
-                                  ? Colors.grey
-                                  : Colors
-                                      .red, // Change color when out of stock
+                              stock == 0 ? Colors.grey : Colors.red,
                           padding: EdgeInsets.symmetric(vertical: 14),
                         ),
                         child: Text(
-                          stock == 0
-                              ? "Hết hàng"
-                              : "Mua ngay", // Change text when out of stock
+                          stock == 0 ? "Hết hàng" : "Mua ngay",
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ),
@@ -585,14 +579,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> _loadComments() async {
-    final productComments = await _commentRepo.getProductComments(
-      widget.product.id!,
-    );
+    final productComments = await _commentRepo.getProductComments(productId);
+    if (mounted) {
+      setState(() {
+        comments = productComments;
 
-    productComments.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    setState(() {
-      comments = productComments;
-    });
+        double avgRating = Utils.calculateAverageRating(comments);
+        if (avgRating > 0 && currentProduct.id != null) {
+          _productRepo.updateProductRating(currentProduct.id!, avgRating);
+          currentProduct = currentProduct..rating = avgRating;
+        }
+      });
+    }
   }
 
   Widget _buildCommentSection() {
@@ -812,7 +810,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
 
             const SizedBox(height: 10),
-            Utils.buildStarRating(widget.product.rating),
+
+            FutureBuilder<Widget>(
+              future: Utils.getProductRatingStars(widget.product.id!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox(
+                    height: 20,
+                    width: 100,
+                    child: LinearProgressIndicator(),
+                  );
+                } else if (snapshot.hasData) {
+                  return snapshot.data!;
+                } else {
+                  return Utils.buildStarRating(0); // Fallback to empty stars
+                }
+              },
+            ),
 
             const SizedBox(height: 20),
             Column(

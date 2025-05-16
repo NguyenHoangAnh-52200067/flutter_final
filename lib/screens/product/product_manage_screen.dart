@@ -214,15 +214,15 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   Widget _buildGridView() {
     return GridView.builder(
       padding: const EdgeInsets.all(5),
-      itemCount: _allProducts.length,
+      itemCount: _filteredProducts.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.55, // Adjusted from 0.6 to give more vertical space
+        childAspectRatio: 0.55,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
       ),
       itemBuilder: (context, index) {
-        final product = _allProducts[index];
+        final product = _filteredProducts[index];
         final isSelected = _selectedProducts.contains(product.id);
         return GestureDetector(
           onLongPress: () {
@@ -343,9 +343,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   Widget _buildListView() {
     return ListView.builder(
       padding: const EdgeInsets.all(5),
-      itemCount: _allProducts.length,
+      itemCount: _filteredProducts.length,
       itemBuilder: (context, index) {
-        final product = _allProducts[index];
+        final product = _filteredProducts[index];
         final isSelected = _selectedProducts.contains(product.id);
         return GestureDetector(
           onLongPress: () {

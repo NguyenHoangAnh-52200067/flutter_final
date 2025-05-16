@@ -335,4 +335,14 @@ class ProductRepository extends GetxController {
   }
 
   void updateStock(String s, int i) {}
+
+  Future<void> updateProductRating(String productId, double rating) async {
+    try {
+      await _db.collection("products").doc(productId).update({
+        'rating': rating,
+      });
+    } catch (error) {
+      _handleError(error);
+    }
+  }
 }
