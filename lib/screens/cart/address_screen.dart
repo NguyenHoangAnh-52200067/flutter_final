@@ -21,10 +21,8 @@ class _AddressScreenState extends State<AddressScreen> {
   bool _isUpdatingAddress = false;
 
   void _setDefaultAddress(int index) async {
-    // Kiểm tra nếu đang trong quá trình cập nhật thì không thực hiện
     if (_isUpdatingAddress) return;
 
-    // Đánh dấu đang trong quá trình cập nhật
     setState(() {
       _isUpdatingAddress = true;
     });
@@ -32,7 +30,6 @@ class _AddressScreenState extends State<AddressScreen> {
     try {
       String selectedId = addressList[index].addressId;
 
-      // Tìm địa chỉ mặc định hiện tại và cập nhật thành false
       for (var addr in addressList) {
         if (addr.isDefault) {
           await _addressRepository.updateDefaultAddress(addr.addressId, false);
@@ -193,8 +190,7 @@ class _AddressScreenState extends State<AddressScreen> {
                                       softWrap: true,
                                     ),
                                   ),
-                                  // if (addressList.length > 1 &&
-                                  //     selectedAddressIndex != index)
+
                                   TextButton(
                                     onPressed: () {
                                       _editAddress(index);

@@ -34,8 +34,7 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   // Constants
-  static const _defaultShippingMethod =
-      'Nhanh'; // Thay đổi từ 'Standard' sang 'Nhanh'
+  static const _defaultShippingMethod = 'Nhanh';
   static const _defaultPaymentMethod = 'Cash on Delivery';
   static const _orderPendingStatus = 'Chờ xác nhận';
 
@@ -100,18 +99,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   int _maxPointsCanUse = 0;
   int _pointsToUse = 0;
 
-  // Add new variable for calculated total
   double _calculatedTotal = 0.0;
 
-  bool _isPlacingOrder = false; // Add this state variable
-
-  // Computed properties
+  bool _isPlacingOrder = false;
 
   double get _totalCartPrice => _cartItems.fold(
     0.0,
     (total, item) =>
         total +
-        ((item.discountRate != null && item.discountRate! > 0)
+        ((item.discountRate > 0)
             ? item.priceAfterDiscount! * item.quantity
             : item.price * item.quantity),
   );
@@ -195,7 +191,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final userId = await _userRepository.getEffectiveUserId();
     final user = await _userRepository.getUserDetails(userId);
     final addresses = await _addressRepository.getAddressesByUserId(userId);
-
+    print(addresses.firstWhere((address) => address.isDefault).fullAddress);
     setState(() {
       _userID = userId;
       _userModel = user;
@@ -209,12 +205,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           );
           _selectedAddress = defaultAddress;
           _addressSelected = defaultAddress.fullAddress;
+          print(_addressSelected);
         }
       } else {
-        if (_selectedAddressGuest != null) {
-          _selectedAddress = _selectedAddressGuest;
-          _addressSelected = _selectedAddressGuest!.fullAddress;
-        }
+        final _selectedAddressGuest = addresses.firstWhere(
+          (address) => address.isDefault,
+          orElse: () => addresses.first,
+        );
+        _selectedAddress = _selectedAddressGuest;
+        _addressSelected = _selectedAddressGuest!.fullAddress;
+        print(_addressSelected);
       }
     });
   }
@@ -226,11 +226,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
 
     if (result == true) {
+      print("Chọn địa chỉ thành công");
+      print("Đang tải lại thông tin người dùng");
       await _fetchUser();
     }
   }
 
   Future<void> _placeOrder() async {
+    if (_selectedAddress == null) {
+      _showErrorSnackBar('Vui lòng chọn địa chỉ giao hàng');
+      return;
+    }
+
     if (_userRepo.isUserId(await _userRepo.getEffectiveUserId())) {
       if (_addressList.isEmpty) {
         _showErrorSnackBar('Vui lòng nhập địa chỉ giao hàng');

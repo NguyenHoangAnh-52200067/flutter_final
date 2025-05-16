@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce_app/models/address_model.dart';
+import 'package:ecommerce_app/repository/user_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AddressRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? user = FirebaseAuth.instance.currentUser;
+  final UserRepository _userRepository = UserRepository();
 
   Future<void> saveAddress(AddressModel address) async {
     await _firestore.collection('addresses').add(address.toJson());
@@ -17,7 +19,7 @@ class AddressRepository {
               .collection('addresses')
               .where('userId', isEqualTo: userId)
               .get();
-
+      print("Địa chỉ của người dùng: $userId");
       return querySnapshot.docs
           .map((doc) => AddressModel.fromJson(doc.data()))
           .toList();
@@ -54,15 +56,20 @@ class AddressRepository {
   Future<void> updateDefaultAddress(String addressId, bool isDefault) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      String userId = "";
       if (user == null) {
-        throw Exception("User not logged in");
+        userId = await _userRepository.getEffectiveUserId();
+        print("Guest user");
+      } else {
+        print("User logged in");
+        userId = user.uid;
       }
 
       final addressQuery =
           await _firestore
               .collection('addresses')
               .where('addressId', isEqualTo: addressId)
-              .where('userId', isEqualTo: user.uid)
+              .where('userId', isEqualTo: userId)
               .get();
 
       if (addressQuery.docs.isEmpty) {
