@@ -60,13 +60,14 @@ class _AdminVoucherManagementScreenState
   }
 
   List<VoucherModel> get _paginatedVouchers {
-    final startIndex = (_currentPage - 1) * _vouchersPerPage;
+    if (_filteredVouchers.isEmpty) return [];
+
+    final startIndex = max(0, (_currentPage - 1) * _vouchersPerPage);
     final endIndex = min(
       startIndex + _vouchersPerPage,
       _filteredVouchers.length,
     );
 
-    if (startIndex >= _filteredVouchers.length) return [];
     return _filteredVouchers.sublist(startIndex, endIndex);
   }
 
@@ -101,6 +102,43 @@ class _AdminVoucherManagementScreenState
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
+              : _filteredVouchers.isEmpty
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.local_offer_outlined,
+                      size: 64,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Không có voucher nào',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AddVoucherScreen(),
+                          ),
+                        );
+                        if (result == true) {
+                          _loadVouchers();
+                        }
+                      },
+                      child: const Text('Thêm voucher mới'),
+                    ),
+                  ],
+                ),
+              )
               : Column(
                 children: [
                   Expanded(

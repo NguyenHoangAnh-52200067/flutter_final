@@ -44,38 +44,42 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
     switch (selectedTimeFrame) {
       case TimeFrame.yearly:
         startDate = DateTime(now.year, 1, 1);
-        endDate = DateTime(now.year, 12, 31);
+        endDate = DateTime(now.year, 12, 31, 23, 59, 59);
         break;
       case TimeFrame.quarterly:
         final quarter = (now.month - 1) ~/ 3;
         startDate = DateTime(now.year, quarter * 3 + 1, 1);
-        endDate = DateTime(now.year, (quarter + 1) * 3 + 1, 0);
+        endDate = DateTime(now.year, (quarter + 1) * 3 + 1, 0, 23, 59, 59);
         break;
       case TimeFrame.monthly:
         startDate = DateTime(now.year, now.month, 1);
-        endDate = DateTime(now.year, now.month + 1, 0);
+        endDate = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
         break;
       case TimeFrame.weekly:
-        startDate = DateTime(
-          now.year,
-          now.month,
-          now.day,
-        ).subtract(Duration(days: now.weekday - 1));
-        endDate = startDate!.add(
-          const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
+        startDate = DateTime.now().subtract(Duration(days: now.weekday - 1));
+        endDate = DateTime.now().add(
+          Duration(days: 7 - now.weekday, hours: 23, minutes: 59, seconds: 59),
         );
         break;
       case TimeFrame.daily:
-        startDate = DateTime(now.year, now.month, now.day);
-        endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        final today = DateTime.now();
+        startDate = DateTime(today.year, today.month, today.day);
+        endDate = DateTime(today.year, today.month, today.day, 23, 59, 59);
         break;
       case TimeFrame.custom:
         break;
     }
+
+    print('Selected timeframe: $selectedTimeFrame');
+    print('Start date: $startDate');
+    print('End date: $endDate');
   }
 
   Future<void> _loadDashboardData() async {
     try {
+      print('Loading data for timeframe: $selectedTimeFrame');
+      print('Date range: $startDate to $endDate');
+
       final ordersSnapshot =
           await FirebaseFirestore.instance
               .collection('orders')
@@ -84,11 +88,14 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
               .where('status', isEqualTo: 'Đã giao')
               .get();
 
+      print('Found ${ordersSnapshot.docs.length} orders');
+
       double totalRevenue = 0;
       double totalProfit = 0;
       int orderCount = 0;
       int totalProductsSold = 0;
       Set<String> uniqueProducts = {};
+      double totalProductsCostPrice = 0.0;
 
       Map<DateTime, Map<String, dynamic>> dailyStats = {};
 
@@ -115,10 +122,14 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
         for (var item in items) {
           final productId = item['product']['id'] as String;
           final quantity = (item['quantity'] as num).toInt();
+          final costPrice =
+              (item['product']['costPrice'] as num?)?.toDouble() ?? 0.0;
+
           uniqueProducts.add(productId);
           totalProductsSold += quantity;
+          totalProductsCostPrice += costPrice * quantity;
         }
-
+        print("Tổng giá trị tiền hàng gốc $totalProductsCostPrice");
         final dateKey = DateTime(
           orderDate.year,
           orderDate.month,
@@ -267,8 +278,26 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
     if (picked != null) {
       setState(() {
         selectedTimeFrame = TimeFrame.custom;
-        startDate = picked.start;
-        endDate = picked.end;
+        // Set start date to beginning of the day
+        startDate = DateTime(
+          picked.start.year,
+          picked.start.month,
+          picked.start.day,
+        );
+        // Set end date to end of the day
+        endDate = DateTime(
+          picked.end.year,
+          picked.end.month,
+          picked.end.day,
+          23,
+          59,
+          59,
+        );
+
+        print('Custom date range selected:');
+        print('Start date: $startDate');
+        print('End date: $endDate');
+
         _loadDashboardData();
       });
     }
