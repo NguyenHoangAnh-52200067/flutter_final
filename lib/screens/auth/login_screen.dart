@@ -176,13 +176,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(color: Colors.grey[300]),
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: NetworkImage(
+                              'https://res.cloudinary.com/dsj6sba9f/image/upload/v1747506169/c085ad076c442c8191e6b7f48ef59aad_kjevqa.jpg',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 5),
                       const Text(
-                        'HA SHOP',
+                        'T7M SHOP',
                         style: TextStyle(
                           fontSize: 50,
                           fontWeight: FontWeight.w400,

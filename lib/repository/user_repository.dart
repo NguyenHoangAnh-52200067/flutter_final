@@ -34,8 +34,14 @@ class UserRepository extends GetxController {
     return await GuestUserRepository.getOrCreateGuestId();
   }
 
-  Future<String?> getUserRole(String userId) async {
+  Future<String?> getUserRole(String? userId) async {
     try {
+      // Check if userId is null or empty
+      if (userId == null || userId.isEmpty) {
+        print("getUserRole called with null or empty userId");
+        return null;
+      }
+
       final userDoc = await _db.collection('users').doc(userId).get();
       if (!userDoc.exists) {
         return null;

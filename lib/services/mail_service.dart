@@ -1,11 +1,23 @@
 import 'package:ecommerce_app/models/product_model.dart';
 import 'package:ecommerce_app/utils/utils.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'dart:convert';
 import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server/gmail.dart';
+import 'package:mailer/smtp_server.dart';
 
 class MailService {
   final String username = 'trandokhanhminh@gmail.com';
   final String password = 'cgcirpzspzjtxyjm';
+
+  // EmailJS credentials
+  final String emailJsServiceId = 'service_bytxku9';
+  final String emailJsTemplateId =
+      'template_onr40nb'; // Order confirmation template
+  final String emailJsDeliveryTemplateId =
+      'template_eskx4tu'; // Replace with your new template ID
+  final String emailJsUserId = '4SKScCbLDRa1-mSd2';
 
   Future<void> sendOrderConfirmationEmail(
     String email,
@@ -17,32 +29,93 @@ class MailService {
     double pointsConversion,
   ) async {
     try {
-      final smtpServer = gmail(username, password);
+      if (kIsWeb) {
+        // Use EmailJS for web
+        await _sendViaEmailJS(
+          email,
+          name,
+          orderId,
+          total,
+          products,
+          shippingFee,
+          pointsConversion,
+        );
+        print('Email sent successfully via EmailJS');
+      } else {
+        // Use direct SMTP for mobile
+        final smtpServer = gmail(username, password);
+        final emailHtml = _buildOrderConfirmationTemplate(
+          name: name,
+          orderId: orderId,
+          products: products,
+          shippingFee: shippingFee,
+          pointsConversion: pointsConversion,
+          total: total,
+        );
 
-      final emailHtml = _buildOrderConfirmationTemplate(
-        name: name,
-        orderId: orderId,
-        products: products,
-        shippingFee: shippingFee,
-        pointsConversion: pointsConversion,
-        total: total,
-      );
+        final message =
+            Message()
+              ..from = Address(username, 'Ecommerce App')
+              ..recipients.add(email)
+              ..subject = 'Bạn đã đặt hàng thành công!'
+              ..html = emailHtml;
 
-      final message =
-          Message()
-            ..from = Address(username, 'Ecommerce App')
-            ..recipients.add(email)
-            ..subject = 'Bạn đã đặt hàng thành công!'
-            ..html = emailHtml;
-
-      final sendReport = await send(message, smtpServer);
-      print('Email sent successfully: ${sendReport.toString()}');
+        final sendReport = await send(message, smtpServer);
+        print('Email sent successfully: ${sendReport.toString()}');
+      }
     } catch (e) {
       print('Failed to send email: $e');
       throw Exception(
         'Failed to send order confirmation email: ${e.toString()}',
       );
     }
+  }
+
+  Future<void> _sendViaEmailJS(
+    String email,
+    String name,
+    String orderId,
+    String total,
+    List<ProductModel> products,
+    String shippingFee,
+    double pointsConversion,
+  ) async {
+    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
+
+    final productsText = products
+        .map((p) {
+          final price =
+              p.discount > 0 ? p.price * (1 - p.discount / 100) : p.price;
+          return '${p.productName} - ${formatCurrency(price)}';
+        })
+        .join('<br>');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'service_id': emailJsServiceId,
+        'template_id': emailJsTemplateId,
+        'user_id': emailJsUserId,
+        'template_params': {
+          'email': email,
+          'to_name': name,
+          'order_id': orderId,
+          'total': total,
+          'products_list': productsText,
+          'shipping_fee': shippingFee,
+          'points_conversion': pointsConversion.toString(),
+        },
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to send email: ${response.body}');
+    }
+  }
+
+  String formatCurrency(double amount) {
+    return '${amount.toStringAsFixed(0)}đ';
   }
 
   Future<void> sendOTPEmail(String email, String otp) async {
@@ -197,38 +270,101 @@ class MailService {
   }
 
   Future<void> sendOrderDeliveredEmail(
+    String? email,
+    String name,
+    String orderId,
+    String total,
+    List<ProductModel> products,
+    String shippingFee,
+    double pointsEarned, // Points earned from this purchase
+  ) async {
+    try {
+      // Check if email is null or empty
+      if (email == null || email.trim().isEmpty) {
+        print('Cannot send delivery email: recipient email address is empty');
+        return;
+      }
+
+      if (kIsWeb) {
+        // Use EmailJS for web
+        await _sendDeliveryEmailViaEmailJS(
+          email,
+          name,
+          orderId,
+          total,
+          products,
+          shippingFee,
+          pointsEarned,
+        );
+        print('Delivery email sent successfully via EmailJS');
+      } else {
+        // Use direct SMTP for mobile
+        final smtpServer = gmail(username, password);
+        final emailHtml = _buildOrderDeliveredTemplate(
+          name: name,
+          orderId: orderId,
+          products: products,
+          shippingFee: shippingFee,
+          pointsEarned: pointsEarned,
+          total: total,
+        );
+
+        final message =
+            Message()
+              ..from = Address(username, 'Ecommerce App')
+              ..recipients.add(email)
+              ..subject = 'Đơn hàng của bạn đã được giao thành công!'
+              ..html = emailHtml;
+
+        final sendReport = await send(message, smtpServer);
+        print('Delivery email sent successfully: ${sendReport.toString()}');
+      }
+    } catch (e) {
+      print('Failed to send delivery email: $e');
+    }
+  }
+
+  Future<void> _sendDeliveryEmailViaEmailJS(
     String email,
     String name,
     String orderId,
     String total,
     List<ProductModel> products,
     String shippingFee,
-    double pointsConversion,
+    double pointsEarned,
   ) async {
-    try {
-      final smtpServer = gmail(username, password);
+    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
 
-      final emailHtml = _buildOrderDeliveredTemplate(
-        name: name,
-        orderId: orderId,
-        products: products,
-        shippingFee: shippingFee,
-        pointsConversion: pointsConversion,
-        total: total,
-      );
+    final productsText = products
+        .map((p) {
+          final price =
+              p.discount > 0 ? p.price * (1 - p.discount / 100) : p.price;
+          return '${p.productName} - ${Utils.formatCurrency(price)}';
+        })
+        .join('<br>');
 
-      final message =
-          Message()
-            ..from = Address(username, 'Ecommerce App')
-            ..recipients.add(email)
-            ..subject = 'Đơn hàng của bạn đã được giao thành công!'
-            ..html = emailHtml;
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'service_id': emailJsServiceId,
+        'template_id': emailJsDeliveryTemplateId,
+        'user_id': emailJsUserId,
+        'template_params': {
+          'email': email,
+          'to_name': name,
+          'order_id': orderId,
+          'total': total,
+          'products_list': productsText,
+          'shipping_fee': shippingFee,
+          'points_earned': pointsEarned.toString(),
+          'delivery_date': DateFormat('dd/MM/yyyy').format(DateTime.now()),
+        },
+      }),
+    );
 
-      final sendReport = await send(message, smtpServer);
-      print('Delivery email sent successfully: ${sendReport.toString()}');
-    } catch (e) {
-      print('Failed to send delivery email: $e');
-      throw Exception('Failed to send order delivery email: ${e.toString()}');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to send delivery email: ${response.body}');
     }
   }
 
@@ -237,7 +373,7 @@ class MailService {
     required String orderId,
     required List<ProductModel> products,
     required String shippingFee,
-    required double pointsConversion,
+    required double pointsEarned,
     required String total,
   }) {
     return '''
@@ -261,11 +397,16 @@ class MailService {
               </tr>
             </table>
           </div>
-          ${_buildOrderSummary(shippingFee, pointsConversion, total)}
           
           <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 20px;">
             <p style="font-size: 15px; color: #2e7d32; margin: 0;">
-              <strong>Cảm ơn bạn đã mua sắm tại Ecommerce App!</strong> Chúng tôi rất mong nhận được đánh giá của bạn về sản phẩm.
+              <strong>Bạn đã nhận được ${pointsEarned.toInt()} điểm thưởng</strong> từ đơn hàng này!
+            </p>
+          </div>
+          
+          <div style="background-color: #f0f0f0; padding: 15px; border-radius: 8px; margin-top: 20px;">
+            <p style="font-size: 15px; color: #333; margin: 0;">
+              <strong>Chúng tôi rất mong nhận được đánh giá của bạn về sản phẩm.</strong> Hãy đăng nhập vào ứng dụng để đánh giá sản phẩm bạn đã mua.
             </p>
           </div>
 

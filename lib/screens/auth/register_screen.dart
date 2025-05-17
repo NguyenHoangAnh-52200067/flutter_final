@@ -242,8 +242,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               width: 100,
                               height: 100,
                               decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(10),
+                                shape: BoxShape.circle,
+                                image: DecorationImage(
+                                  image: NetworkImage(
+                                    'https://res.cloudinary.com/dsj6sba9f/image/upload/v1747506169/c085ad076c442c8191e6b7f48ef59aad_kjevqa.jpg',
+                                  ),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -251,7 +256,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'HA SHOP',
+                                  'T7M SHOP',
                                   style: TextStyle(
                                     fontSize: 50,
                                     fontWeight: FontWeight.w400,
@@ -304,9 +309,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 },
                               ),
 
-                              // Address input field with suggestions
-                              SizedBox(
-                                width: 365,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24.0,
+                                ),
                                 child: TextField(
                                   controller: addressController,
                                   keyboardType: TextInputType.text,
@@ -374,16 +380,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 keyboardType: TextInputType.phone,
                                 textInputAction: TextInputAction.next,
                                 isPassword: true,
-
-                                // validator: (String? value) {
-                                //   if (value == null || value.length < 6) {
-                                //     _password.requestFocus();
-                                //     return "Password should have at least 6 characters";
-                                //   }
-                                //   return null;
-                                // },
+                                validator: (String? value) {
+                                  if (value == null ||
+                                      value.length > 1 ||
+                                      value.length < 12) {
+                                    _password.requestFocus();
+                                    return "Password should have at least 12 characters";
+                                  }
+                                  return null;
+                                },
                               ),
-                              ///////////////////////////////////////////////////////////////////////////////////////////////////////
                               InputField(
                                 controller: _passwordController,
                                 focusNode: _password,

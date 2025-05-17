@@ -179,40 +179,24 @@ class _AdminOrderManagementScreenState extends State<AdminOrderManagementScreen>
 
   void _updateOrderStatus(OrderModel order, String newStatus) async {
     try {
-      final MailService _mailService = MailService();
-
       switch (newStatus) {
         case 'Chờ giao hàng':
-          await _orderRepository.updateAcceptDate(order.id);
-          await _orderRepository.updateShippingDate(order.id);
+          await _orderRepository.markOrderAsAccepted(order.id);
           break;
         case 'Đã giao':
-          await _orderRepository.updateDeliveryDate(order.id);
-          await _orderRepository.updatePaymentDate(order.id);
-
-          final products = await _fetchOrderProducts(order);
-          await _mailService.sendOrderDeliveredEmail(
-            order.customerEmail,
-            order.customerName,
-            order.id,
-            Utils.formatCurrency(order.totalAmount),
-            products,
-            order.shippingFee,
-            order.conversionPoint ?? 0.0,
-          );
+          await _orderRepository.markOrderAsDelivered(order.id);
+          break;
+        case 'Đã hủy':
+          await _orderRepository.markOrderAsCanceled(order.id);
+          break;
+        case 'Trả hàng':
+          await _orderRepository.markOrderAsReturned(order.id);
           break;
         default:
+          await _orderRepository.updateOrderStatus(order.id, newStatus);
           break;
       }
-      await _orderRepository.updateOrderStatus(order.id, newStatus);
-      await _userRepository.updateMembershipPoints(
-        order.customerId,
-        calculateMemberShipPoints((order.totalAmount).truncate()).toInt(),
-      );
-      await _userRepository.addMembershipCurrentPoints(
-        order.customerId,
-        calculateMemberShipPoints((order.totalAmount).truncate()).toInt(),
-      );
+
       await _loadOrders();
       ScaffoldMessenger.of(
         context,

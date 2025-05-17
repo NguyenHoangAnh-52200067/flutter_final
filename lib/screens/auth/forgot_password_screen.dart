@@ -124,30 +124,30 @@ class _LoginState extends State<ForgotPassword> {
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: ElevatedButton(
-                          onPressed:
-                              (_emailController.text.isEmpty || _isLoading)
-                                  ? null
-                                  : _resetPassword,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor: Colors.grey[300],
-                            disabledForegroundColor: Colors.grey[600],
-                            minimumSize: const Size(double.infinity, 50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _resetPassword,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.grey[300],
+                              disabledForegroundColor: Colors.grey[600],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
                             ),
+                            child:
+                                _isLoading
+                                    ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                    : const Text(
+                                      'GỬI YÊU CẦU',
+                                      style: TextStyle(fontSize: 18),
+                                    ),
                           ),
-                          child:
-                              _isLoading
-                                  ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                  : const Text(
-                                    'GỬI YÊU CẦU',
-                                    style: TextStyle(fontSize: 18),
-                                  ),
                         ),
                       ),
                     ],

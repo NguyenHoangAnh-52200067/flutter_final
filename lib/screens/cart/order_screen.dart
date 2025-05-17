@@ -151,7 +151,11 @@ class _OrderScreenState extends State<OrderScreen>
               ),
               TextButton(
                 onPressed: () async {
-                  await _orderRepository.updateOrderStatus(orderId, 'Đã hủy');
+                  if (status == 'Đã hủy') {
+                    await _orderRepository.markOrderAsCanceled(orderId);
+                  } else {
+                    await _orderRepository.markOrderAsReturned(orderId);
+                  }
                   if (!mounted) return;
                   Navigator.of(context).pop();
                   _loadOrders();
@@ -162,7 +166,6 @@ class _OrderScreenState extends State<OrderScreen>
           );
         },
       );
-      _loadOrders();
     } catch (e) {
       setState(() {
         _error = 'Không thể cập nhật trạng thái đơn hàng: $e';

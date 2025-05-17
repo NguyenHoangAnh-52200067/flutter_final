@@ -61,6 +61,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     selectedOption = widget.product.productName;
     _loadVariants();
     _loadComments();
+    super.initState();
   }
 
   Future<void> _fetchLatestProductStock() async {
@@ -84,11 +85,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   void _loadUserId() async {
     final id = await _userRepo.getEffectiveUserId();
-    if (mounted) {
-      setState(() {
-        userId = id;
-      });
-    }
+    print("User ID: $id");
+    setState(() {
+      userId = id;
+    });
   }
 
   void _loadVariants() async {
@@ -921,42 +921,55 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
             const SizedBox(height: 20),
             _buildCommentSection(),
-            if (_userRepo.isUserId(userId) &&
-                _userRepo.getUserRole(userId) == 'admin' &&
-                widget.product.parentId == null)
-              Center(
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final newVariant = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => AddVariantScreen(
-                                parentProduct: widget.product,
-                              ),
-                        ),
-                      );
+            FutureBuilder<String>(
+              future: _userRepo.getEffectiveUserId(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox();
+                }
 
-                      if (newVariant != null) {
-                        _loadVariants();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7AE582),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                if (snapshot.hasData &&
+                    _userRepo.isUserId(snapshot.data!) &&
+                    _userRepo.getUserRole(snapshot.data!) == 'admin' &&
+                    widget.product.parentId == null) {
+                  return Center(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final newVariant = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => AddVariantScreen(
+                                    parentProduct: widget.product,
+                                  ),
+                            ),
+                          );
+
+                          if (newVariant != null) {
+                            _loadVariants();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7AE582),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          "Thêm biến thể",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      "Thêm biến thể",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
+                  );
+                }
+
+                return const SizedBox(); // Return empty widget if conditions not met
+              },
+            ),
           ],
         ),
       ),
