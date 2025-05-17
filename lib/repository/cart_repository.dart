@@ -9,14 +9,12 @@ class CartRepository extends GetxController {
   final _db = FirebaseFirestore.instance;
   User? user = FirebaseAuth.instance.currentUser;
 
-  // Thêm sản phẩm vào giỏ hàng
   Future<void> addItem(Cart cart, CartItem newItem) async {
     try {
       final cartRef = _db.collection('carts').doc(cart.userId);
       final cartDoc = await cartRef.get();
 
       if (cartDoc.exists) {
-        // Kiểm tra sản phẩm đã tồn tại
         final existingItems = List<CartItem>.from(
           (cartDoc.data()?['items'] as List).map(
             (item) => CartItem.fromMap(item),
@@ -30,19 +28,16 @@ class CartRepository extends GetxController {
         );
 
         if (existingItemIndex >= 0) {
-          // Cập nhật số lượng nếu sản phẩm đã tồn tại
           existingItems[existingItemIndex].quantity += newItem.quantity;
           await cartRef.update({
             'items': existingItems.map((item) => item.toMap()).toList(),
           });
         } else {
-          // Thêm sản phẩm mới
           await cartRef.update({
             'items': FieldValue.arrayUnion([newItem.toMap()]),
           });
         }
       } else {
-        // Tạo giỏ hàng mới
         await cartRef.set({
           'userId': cart.userId,
           'items': [newItem.toMap()],
@@ -55,7 +50,6 @@ class CartRepository extends GetxController {
     }
   }
 
-  // Cập nhật số lượng của một item trong giỏ hàng
   Future<void> updateItemQuantity(
     Cart cart,
     String itemId,
@@ -128,7 +122,6 @@ class CartRepository extends GetxController {
     }
   }
 
-  // Xóa một item khỏi giỏ hàng
   Future<void> removeItem(Cart cart, String itemId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -180,10 +173,8 @@ class CartRepository extends GetxController {
         ),
       );
 
-      // Xóa item nếu có, nếu không thì bỏ qua
       items.removeWhere((item) => item.id == itemId);
 
-      // Cập nhật lại giỏ hàng dù item có bị xóa hay không
       await cartRef.update({
         'items': items.map((item) => item.toMap()).toList(),
       });
@@ -193,7 +184,6 @@ class CartRepository extends GetxController {
     }
   }
 
-  // Xóa toàn bộ giỏ hàng
   Future<void> clearCart(Cart cart) async {
     try {
       final cartRef = _db.collection('carts').doc(cart.userId);
@@ -210,7 +200,6 @@ class CartRepository extends GetxController {
     }
   }
 
-  // Lưu giỏ hàng vào Firebase
   Future<void> saveCart(Cart cart) async {
     try {
       if (cart.userId.isEmpty) {
@@ -224,7 +213,6 @@ class CartRepository extends GetxController {
     }
   }
 
-  // Lấy giỏ hàng từ Firebase
   Future<Cart> getCart(String userId) async {
     try {
       if (userId.isEmpty) {
@@ -237,10 +225,9 @@ class CartRepository extends GetxController {
         return Cart.fromMap(cartDoc.data()!);
       }
 
-      // Tạo giỏ hàng mới nếu chưa tồn tại
       final newCart = Cart(
         userId: userId,
-        cartId: _db.collection('carts').doc().id, // Tạo ID riêng cho cart
+        cartId: _db.collection('carts').doc().id,
         items: [],
       );
       await saveCart(newCart);

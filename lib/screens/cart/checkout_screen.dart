@@ -332,7 +332,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _processOrder(OrderModel order) async {
     await _orderRepository.addOrder(order);
     await _processPoints(order.id, _pointsToUse.toDouble());
-    print(_pointsToUse * 1000);
+
     await _sendOrderConfirmationEmail(
       _selectedAddress!.userMail,
       _selectedAddress!.userName,
@@ -353,15 +353,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _pointsToUse,
       );
     }
-    if (_userRepo.isUserId(_userID!)) {
-      await _cartRepository.removeSelectedItems(
-        _userID!,
-        _cartItems.map((item) => item.id).toList(),
-      );
-    } else {
-      for (var item in _cartItems) {
-        await _cartRepository.removeGuestCartItem(_userID!, item.id);
+
+    try {
+      if (_userRepo.isUserId(_userID!)) {
+        await _cartRepository.removeSelectedItems(
+          _userID!,
+          _cartItems.map((item) => item.id).toList(),
+        );
+      } else {
+        for (var item in _cartItems) {
+          try {
+            await _cartRepository.removeGuestCartItem(_userID!, item.id);
+          } catch (e) {
+            print('Không thể xóa item ${item.id}: $e');
+            // Continue with next item even if this one fails
+          }
+        }
       }
+    } catch (e) {
+      print('Lỗi khi xóa items khỏi giỏ hàng: $e');
+      // Don't throw exception here, as the order is already created
     }
   }
 
