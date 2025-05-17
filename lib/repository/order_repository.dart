@@ -42,19 +42,19 @@ class OrderRepository {
 
   Future<void> updateShippingDate(String orderId) async {
     await _db.collection(_collection).doc(orderId).update({
-      'shippingDate': DateTime.now().add(Duration(hours: 3)),
+      'shippingDate': DateTime.now(),
     });
   }
 
   Future<void> updatePaymentDate(String orderId) async {
     await _db.collection(_collection).doc(orderId).update({
-      'paymentDate': DateTime.now().add(Duration(days: 3)),
+      'paymentDate': DateTime.now(),
     });
   }
 
   Future<void> updateDeliveryDate(String orderId) async {
     await _db.collection(_collection).doc(orderId).update({
-      'deliveryDate': DateTime.now().add(Duration(days: 3)),
+      'deliveryDate': DateTime.now(),
     });
   }
 

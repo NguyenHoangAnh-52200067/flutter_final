@@ -323,19 +323,22 @@ class UserRepository extends GetxController {
   Future<List<UserModel>> getAllUsers() async {
     try {
       final querySnapshot = await _db.collection("users").get();
-      return querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        return UserModel(
-          id: doc.id,
-          email: data["email"] ?? "",
-          fullName: data["fullName"] ?? "",
-          address: data["address"],
-          linkImage: data["imageLink"],
-          memberShipPoint: data["membershipPoints"],
-          memberShipCurrentPoint: data["memberShipCurrentPoint"],
-          memberShipLevel: data["membershipLevel"],
-        );
-      }).toList();
+      return querySnapshot.docs
+          .where((doc) => doc.data()["email"] != "admin@gmail.com")
+          .map((doc) {
+            final data = doc.data();
+            return UserModel(
+              id: doc.id,
+              email: data["email"] ?? "",
+              fullName: data["fullName"] ?? "",
+              address: data["address"],
+              linkImage: data["imageLink"],
+              memberShipPoint: data["membershipPoints"],
+              memberShipCurrentPoint: data["memberShipCurrentPoint"],
+              memberShipLevel: data["membershipLevel"],
+            );
+          })
+          .toList();
     } catch (e) {
       print("Error getting all users: $e");
       return [];

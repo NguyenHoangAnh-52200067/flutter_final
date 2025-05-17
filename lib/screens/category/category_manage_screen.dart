@@ -202,7 +202,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                 // Danh sách danh mục
                 Expanded(
                   child:
-                      _parentCategories.isEmpty
+                      _filteredCategories.isEmpty
                           ? const Center(
                             child: Text("Không tìm thấy danh mục nào"),
                           )
@@ -222,7 +222,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   Widget _buildGridView() {
     return GridView.builder(
       padding: const EdgeInsets.all(5),
-      itemCount: _parentCategories.length,
+      itemCount: _filteredCategories.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.92,
@@ -230,7 +230,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
         mainAxisSpacing: 10,
       ),
       itemBuilder: (context, index) {
-        final parent = _parentCategories[index];
+        final parent = _filteredCategories[index];
         final isSelected = _selectedCategories.contains(parent.id);
         return GestureDetector(
           onLongPress: () {
@@ -319,9 +319,9 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   Widget _buildListView() {
     return ListView.builder(
       padding: const EdgeInsets.all(5),
-      itemCount: _parentCategories.length,
+      itemCount: _filteredCategories.length,
       itemBuilder: (context, index) {
-        final parent = _parentCategories[index];
+        final parent = _filteredCategories[index];
         final isSelected = _selectedCategories.contains(parent.id);
 
         return GestureDetector(
