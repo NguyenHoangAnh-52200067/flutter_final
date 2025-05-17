@@ -1,9 +1,12 @@
 import 'dart:math';
 
 import 'package:ecommerce_app/models/order_model.dart';
+import 'package:ecommerce_app/models/product_model.dart';
 import 'package:ecommerce_app/repository/order_repository.dart';
+import 'package:ecommerce_app/repository/product_repository.dart';
 import 'package:ecommerce_app/repository/user_repository.dart';
 import 'package:ecommerce_app/screens/cart/order_detail_screen.dart';
+import 'package:ecommerce_app/services/mail_service.dart';
 import 'package:ecommerce_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -176,6 +179,8 @@ class _AdminOrderManagementScreenState extends State<AdminOrderManagementScreen>
 
   void _updateOrderStatus(OrderModel order, String newStatus) async {
     try {
+      final MailService _mailService = MailService();
+
       switch (newStatus) {
         case 'Chờ giao hàng':
           await _orderRepository.updateAcceptDate(order.id);
@@ -184,6 +189,17 @@ class _AdminOrderManagementScreenState extends State<AdminOrderManagementScreen>
         case 'Đã giao':
           await _orderRepository.updateDeliveryDate(order.id);
           await _orderRepository.updatePaymentDate(order.id);
+
+          final products = await _fetchOrderProducts(order);
+          await _mailService.sendOrderDeliveredEmail(
+            order.customerEmail,
+            order.customerName,
+            order.id,
+            Utils.formatCurrency(order.totalAmount),
+            products,
+            order.shippingFee,
+            order.conversionPoint ?? 0.0,
+          );
           break;
         default:
           break;
@@ -523,6 +539,22 @@ class _AdminOrderManagementScreenState extends State<AdminOrderManagementScreen>
         ),
       ),
     );
+  }
+
+  Future<List<ProductModel>> _fetchOrderProducts(OrderModel order) async {
+    final List<ProductModel> products = [];
+    final productRepository = ProductRepository();
+
+    for (var detail in order.orderDetails) {
+      final product = await productRepository.getProductById(
+        detail.product.id!,
+      );
+      if (product != null) {
+        products.add(product);
+      }
+    }
+
+    return products;
   }
 
   @override

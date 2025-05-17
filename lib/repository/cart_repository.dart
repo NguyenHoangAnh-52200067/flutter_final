@@ -172,7 +172,8 @@ class CartRepository extends GetxController {
       final cartDoc = await cartRef.get();
 
       if (!cartDoc.exists) {
-        throw Exception('Giỏ hàng không tồn tại');
+        print('Giỏ hàng không tồn tại cho guestId: $guestId');
+        return; // Return silently instead of throwing exception
       }
 
       // Lấy danh sách các mặt hàng trong giỏ
@@ -187,7 +188,8 @@ class CartRepository extends GetxController {
       items.removeWhere((item) => item.id == itemId);
 
       if (items.length == initialLength) {
-        throw Exception('Không tìm thấy item trong giỏ hàng');
+        print('Item $itemId không tìm thấy trong giỏ hàng của guest $guestId');
+        return; // Return silently instead of throwing exception
       }
 
       // Cập nhật lại giỏ hàng
@@ -196,7 +198,7 @@ class CartRepository extends GetxController {
       });
     } catch (e) {
       print('Lỗi khi xóa item khỏi giỏ hàng: $e');
-      throw Exception('Không thể xóa item khỏi giỏ hàng: $e');
+      // Don't throw exception, just log the error
     }
   }
 

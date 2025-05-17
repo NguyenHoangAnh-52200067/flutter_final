@@ -9,7 +9,7 @@ class OrderModel {
   String customerPhone;
   String customerEmail;
   String shippingAddress;
-  String shippingMethod; // ví dụ: "Giao hàng nhanh", "Giao hàng tiết kiệm"
+  String shippingMethod;
   String shippingFee; // phí vận chuyển
   String? voucherCode; // mã giảm giá
   DateTime orderDate; // ngày đặt hàng

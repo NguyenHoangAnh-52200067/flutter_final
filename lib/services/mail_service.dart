@@ -19,7 +19,6 @@ class MailService {
     try {
       final smtpServer = gmail(username, password);
 
-      // Extract email template to a separate method for better readability
       final emailHtml = _buildOrderConfirmationTemplate(
         name: name,
         orderId: orderId,
@@ -194,6 +193,86 @@ class MailService {
         <p style="font-size: 14px; color: #2c3e50;"><strong>Điểm quy đổi:</strong> <span style="color: #e67e22;">${Utils.formatCurrency(pointsConversion)} </span></p>
       ''' : ''}
       <p style="font-size: 14px; color: #2c3e50;"><strong>Tổng tiền thanh toán:</strong> <span style="color: #e67e22;">${total}</span></p>
+    ''';
+  }
+
+  Future<void> sendOrderDeliveredEmail(
+    String email,
+    String name,
+    String orderId,
+    String total,
+    List<ProductModel> products,
+    String shippingFee,
+    double pointsConversion,
+  ) async {
+    try {
+      final smtpServer = gmail(username, password);
+
+      final emailHtml = _buildOrderDeliveredTemplate(
+        name: name,
+        orderId: orderId,
+        products: products,
+        shippingFee: shippingFee,
+        pointsConversion: pointsConversion,
+        total: total,
+      );
+
+      final message =
+          Message()
+            ..from = Address(username, 'Ecommerce App')
+            ..recipients.add(email)
+            ..subject = 'Đơn hàng của bạn đã được giao thành công!'
+            ..html = emailHtml;
+
+      final sendReport = await send(message, smtpServer);
+      print('Delivery email sent successfully: ${sendReport.toString()}');
+    } catch (e) {
+      print('Failed to send delivery email: $e');
+      throw Exception('Failed to send order delivery email: ${e.toString()}');
+    }
+  }
+
+  String _buildOrderDeliveredTemplate({
+    required String name,
+    required String orderId,
+    required List<ProductModel> products,
+    required String shippingFee,
+    required double pointsConversion,
+    required String total,
+  }) {
+    return '''
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 30px;">
+        <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 25px 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+          <h2 style="color: #27ae60; margin-bottom: 10px;">✅ Đơn hàng đã được giao thành công!</h2>
+          <p style="font-size: 16px; color: #333;">Xin chào <strong>${name}</strong>,</p>
+          <p style="font-size: 16px; color: #333;">Đơn hàng của bạn với mã <strong>#${orderId}</strong> đã được giao thành công.</p>
+          
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;" />
+          <div style="margin: 20px 0;">
+            <h3 style="color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">Chi tiết đơn hàng:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="width: 20%; padding: 10px; vertical-align: top;">
+                  ${_buildProductImages(products)}
+                </td>
+                <td style="width: 80%; padding: 10px; vertical-align: top;">
+                  ${_buildProductDetails(products)}
+                </td>
+              </tr>
+            </table>
+          </div>
+          ${_buildOrderSummary(shippingFee, pointsConversion, total)}
+          
+          <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 20px;">
+            <p style="font-size: 15px; color: #2e7d32; margin: 0;">
+              <strong>Cảm ơn bạn đã mua sắm tại Ecommerce App!</strong> Chúng tôi rất mong nhận được đánh giá của bạn về sản phẩm.
+            </p>
+          </div>
+
+          <p style="margin-top: 30px; font-size: 14px; color: #888;">Nếu bạn có bất kỳ câu hỏi nào, hãy liên hệ với chúng tôi bất cứ lúc nào.</p>
+          <p style="font-size: 14px; color: #888;">Trân trọng,<br/><strong style="color: #2c3e50;">Ecommerce App Team</strong></p>
+        </div>
+      </div>
     ''';
   }
 }

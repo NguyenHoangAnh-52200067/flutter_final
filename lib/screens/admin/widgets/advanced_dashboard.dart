@@ -56,9 +56,16 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
         endDate = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
         break;
       case TimeFrame.weekly:
-        startDate = DateTime.now().subtract(Duration(days: now.weekday - 1));
-        endDate = DateTime.now().add(
-          Duration(days: 7 - now.weekday, hours: 23, minutes: 59, seconds: 59),
+        // Sửa lỗi: Tính toán ngày đầu tuần và cuối tuần chính xác hơn
+        // Lấy ngày đầu tuần (thứ 2)
+        startDate = DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(Duration(days: now.weekday - 1));
+        // Lấy ngày cuối tuần (chủ nhật)
+        endDate = startDate!.add(
+          const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
         );
         break;
       case TimeFrame.daily:
@@ -67,6 +74,7 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
         endDate = DateTime(today.year, today.month, today.day, 23, 59, 59);
         break;
       case TimeFrame.custom:
+        // Giữ nguyên ngày đã chọn
         break;
     }
 
@@ -80,6 +88,7 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
       print('Loading data for timeframe: $selectedTimeFrame');
       print('Date range: $startDate to $endDate');
 
+      // Sửa lỗi: Đảm bảo truy vấn Firestore chính xác
       final ordersSnapshot =
           await FirebaseFirestore.instance
               .collection('orders')
@@ -89,6 +98,23 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
               .get();
 
       print('Found ${ordersSnapshot.docs.length} orders');
+
+      // Nếu không có đơn hàng, hiển thị biểu đồ trống
+      if (ordersSnapshot.docs.isEmpty) {
+        setState(() {
+          statistics = {
+            'orderCount': 0,
+            'totalRevenue': 0.0,
+            'totalProfit': 0.0,
+            'productsSold': 0,
+            'productTypes': 0,
+          };
+          revenueSpots = [];
+          profitSpots = [];
+          orderSpots = [];
+        });
+        return;
+      }
 
       double totalRevenue = 0;
       double totalProfit = 0;
@@ -168,6 +194,20 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
       });
     } catch (e) {
       debugPrint('Error loading dashboard data: $e');
+      // Hiển thị lỗi cụ thể hơn
+      print('Chi tiết lỗi: $e');
+      setState(() {
+        statistics = {
+          'orderCount': 0,
+          'totalRevenue': 0.0,
+          'totalProfit': 0.0,
+          'productsSold': 0,
+          'productTypes': 0,
+        };
+        revenueSpots = [];
+        profitSpots = [];
+        orderSpots = [];
+      });
     }
   }
 
@@ -385,21 +425,21 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
 
     return Column(
       children: [
-        _buildLineChart(
+        _buildBarChart(
           'Biểu đồ doanh thu',
           revenueSpots,
           Colors.blue,
           (value) => currencyFormat.format(value),
         ),
         const SizedBox(height: 24),
-        _buildLineChart(
+        _buildBarChart(
           'Biểu đồ lợi nhuận',
           profitSpots,
           Colors.green,
           (value) => currencyFormat.format(value),
         ),
         const SizedBox(height: 24),
-        _buildLineChart(
+        _buildBarChart(
           'Biểu đồ số đơn hàng',
           orderSpots,
           Colors.orange,
@@ -409,34 +449,27 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
     );
   }
 
-  Widget _buildLineChart(
+  Widget _buildBarChart(
     String title,
     List<FlSpot> spots,
     Color color,
     String Function(double) formatValue,
   ) {
-    if (spots.isEmpty) {
-      return const Center(
-        child: Text('Không có dữ liệu trong khoảng thời gian này'),
-      );
-    }
-
-    final interval = (spots.length / 8).ceil().toDouble();
+    // Tính toán khoảng cách giữa các nhãn dựa trên loại khung thời gian
+    final double interval = _calculateInterval(spots.length);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 16, bottom: 8),
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
+        const SizedBox(height: 16),
         SizedBox(
           height: 300,
-          child: LineChart(
-            LineChartData(
+          child: BarChart(
+            BarChartData(
               gridData: FlGridData(show: true),
               titlesData: FlTitlesData(
                 rightTitles: AxisTitles(
@@ -454,13 +487,17 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
                       if (value % interval != 0 || value >= spots.length) {
                         return const SizedBox();
                       }
+
+                      // Lấy ngày tương ứng với vị trí trên trục x
                       final date = startDate!.add(
                         Duration(days: value.toInt()),
                       );
+
+                      // Định dạng nhãn dựa trên loại khung thời gian
                       return SideTitleWidget(
                         axisSide: meta.axisSide,
                         child: Text(
-                          '${date.day}/${date.month}',
+                          _formatDateLabel(date),
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -490,26 +527,80 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
                 ),
               ),
               borderData: FlBorderData(show: true),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: spots,
-                  isCurved: true,
-                  color: color,
-                  barWidth: 3,
-                  isStrokeCapRound: true,
-                  dotData: FlDotData(show: true),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: color.withOpacity(0.2),
-                  ),
-                ),
-              ],
+              barGroups:
+                  spots.asMap().entries.map((entry) {
+                    return BarChartGroupData(
+                      x: entry.key,
+                      barRods: [
+                        BarChartRodData(
+                          toY: entry.value.y,
+                          color: color,
+                          width: 16,
+                          borderRadius: BorderRadius.circular(4),
+                          backDrawRodData: BackgroundBarChartRodData(
+                            show: true,
+                            toY:
+                                spots
+                                    .map((spot) => spot.y)
+                                    .reduce((a, b) => a > b ? a : b) *
+                                1.1,
+                            color: Colors.grey.withOpacity(0.1),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
               minY: 0,
             ),
           ),
         ),
       ],
     );
+  }
+
+  // Tính toán khoảng cách giữa các nhãn dựa trên loại khung thời gian
+  double _calculateInterval(int spotsLength) {
+    switch (selectedTimeFrame) {
+      case TimeFrame.yearly:
+        return 30.0; // Hiển thị khoảng 12 tháng
+      case TimeFrame.quarterly:
+        return 7.0; // Hiển thị khoảng 12-13 tuần
+      case TimeFrame.monthly:
+        return 5.0; // Hiển thị khoảng 6 ngày trong tháng
+      case TimeFrame.weekly:
+        return 1.0; // Hiển thị tất cả các ngày trong tuần
+      case TimeFrame.daily:
+        return 2.0; // Hiển thị khoảng 12 giờ trong ngày
+      case TimeFrame.custom:
+        // Tính toán khoảng cách dựa trên số lượng ngày
+        final days = endDate!.difference(startDate!).inDays + 1;
+        if (days <= 7) return 1.0;
+        if (days <= 31) return (days / 6).ceil().toDouble();
+        if (days <= 90) return (days / 12).ceil().toDouble();
+        return (days / 15).ceil().toDouble();
+    }
+  }
+
+  // Định dạng nhãn ngày tháng dựa trên loại khung thời gian
+  String _formatDateLabel(DateTime date) {
+    switch (selectedTimeFrame) {
+      case TimeFrame.yearly:
+        return DateFormat('MM').format(date); // Tháng/Năm
+      case TimeFrame.quarterly:
+        return DateFormat('dd/MM').format(date); // Ngày/Tháng
+      case TimeFrame.monthly:
+        return DateFormat('dd').format(date); // Ngày
+      case TimeFrame.weekly:
+        return DateFormat('EEE').format(date); // Thứ (T2, T3...)
+      case TimeFrame.daily:
+        return DateFormat('HH:mm').format(date); // Giờ:Phút
+      case TimeFrame.custom:
+        final days = endDate!.difference(startDate!).inDays + 1;
+        if (days <= 7) return DateFormat('EEE').format(date); // Thứ
+        if (days <= 31) return DateFormat('dd').format(date); // Ngày
+        if (days <= 90) return DateFormat('dd/MM').format(date); // Ngày/Tháng
+        return DateFormat('MM/yyyy').format(date); // Tháng/Năm
+    }
   }
 
   String _getTimeFrameText(TimeFrame frame) {
