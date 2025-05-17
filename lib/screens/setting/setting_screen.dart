@@ -4,6 +4,7 @@ import 'package:ecommerce_app/models/voucher_model.dart';
 import 'package:ecommerce_app/repository/user_repository.dart';
 import 'package:ecommerce_app/repository/user_voucher_repository.dart';
 import 'package:ecommerce_app/repository/voucher_repository.dart';
+import 'package:ecommerce_app/screens/admin/admin_home_screen.dart';
 import 'package:ecommerce_app/screens/auth/login_screen.dart';
 import 'package:ecommerce_app/screens/auth/register_screen.dart';
 import 'package:ecommerce_app/screens/cart/address_screen.dart';
@@ -34,6 +35,7 @@ class _SettingScreenState extends State<SettingScreen> {
   final VoucherRepository _voucherRepository = VoucherRepository();
 
   bool _isLoggedIn = false;
+  bool _isAdmin = false;
   String? _email;
   String? _fullName;
   String? _linkImage;
@@ -107,6 +109,7 @@ class _SettingScreenState extends State<SettingScreen> {
       if (userModel != null) {
         _updateUserMemberShipLevel(userModel.id!, userModel.memberShipPoint!);
         setState(() {
+          _isAdmin = userModel.email == "admin@gmail.com";
           _email = userModel.email;
           _fullName = userModel.fullName;
           _linkImage = userModel.linkImage;
@@ -532,6 +535,20 @@ class _SettingScreenState extends State<SettingScreen> {
                       title: 'Tài khoản',
                       showActionButton: false,
                     ),
+                    if (_isAdmin)
+                      SettingMenuTile(
+                        icon: Icons.home_outlined,
+                        title: 'Admin Dashboard',
+                        subTitle: 'Quản lý hệ thống',
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AdminHomeScreen(),
+                            ),
+                          );
+                        },
+                      ),
                     SettingMenuTile(
                       icon: Icons.home_outlined,
                       title: 'Trang chủ',

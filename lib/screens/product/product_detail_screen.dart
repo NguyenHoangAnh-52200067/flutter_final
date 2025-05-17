@@ -967,7 +967,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Expanded(
               flex: 2,
               child: Container(
-                height: 50, // Set fixed height
+                height: 50,
                 color: Color(0xFF20A39E),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -988,6 +988,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       icon: Icon(Icons.add_shopping_cart, color: Colors.white),
                       //Thêm vào giỏ hàng
                       onPressed: () {
+                        setState(() {
+                          isBuyNow = false;
+                        });
                         _bottomSheet(isBuyNow);
                       },
                     ),

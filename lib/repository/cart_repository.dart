@@ -167,7 +167,6 @@ class CartRepository extends GetxController {
 
   Future<void> removeGuestCartItem(String guestId, String itemId) async {
     try {
-      // Lấy cart document theo guestId
       final cartRef = _db.collection('carts').doc(guestId);
       final cartDoc = await cartRef.get();
 
@@ -175,22 +174,16 @@ class CartRepository extends GetxController {
         throw Exception('Giỏ hàng không tồn tại');
       }
 
-      // Lấy danh sách các mặt hàng trong giỏ
       final items = List<CartItem>.from(
         (cartDoc.data()?['items'] as List).map(
           (item) => CartItem.fromMap(item),
         ),
       );
 
-      // Xử lý xóa mục trong giỏ
-      final initialLength = items.length;
+      // Xóa item nếu có, nếu không thì bỏ qua
       items.removeWhere((item) => item.id == itemId);
 
-      if (items.length == initialLength) {
-        throw Exception('Không tìm thấy item trong giỏ hàng');
-      }
-
-      // Cập nhật lại giỏ hàng
+      // Cập nhật lại giỏ hàng dù item có bị xóa hay không
       await cartRef.update({
         'items': items.map((item) => item.toMap()).toList(),
       });

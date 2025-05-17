@@ -57,8 +57,8 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
         break;
       case TimeFrame.weekly:
         startDate = DateTime.now().subtract(Duration(days: now.weekday - 1));
-        endDate = DateTime.now().add(
-          Duration(days: 7 - now.weekday, hours: 23, minutes: 59, seconds: 59),
+        endDate = startDate!.add(
+          Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
         );
         break;
       case TimeFrame.daily:
@@ -97,15 +97,83 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
       Set<String> uniqueProducts = {};
       double totalProductsCostPrice = 0.0;
 
-      Map<DateTime, Map<String, dynamic>> dailyStats = {};
+      Map<String, Map<String, dynamic>> groupedStats = {};
+      List<String> labels = [];
 
-      for (
-        DateTime date = startDate!;
-        date.isBefore(endDate!.add(const Duration(days: 1)));
-        date = date.add(const Duration(days: 1))
-      ) {
-        final dateKey = DateTime(date.year, date.month, date.day);
-        dailyStats[dateKey] = {'revenue': 0.0, 'profit': 0.0, 'orders': 0};
+      switch (selectedTimeFrame) {
+        case TimeFrame.yearly:
+          for (int i = 1; i <= 12; i++) {
+            final monthKey = i.toString().padLeft(2, '0');
+            groupedStats[monthKey] = {
+              'revenue': 0.0,
+              'profit': 0.0,
+              'orders': 0,
+            };
+            labels.add('T$i');
+          }
+          break;
+
+        case TimeFrame.quarterly:
+          final quarter = (startDate!.month - 1) ~/ 3;
+          for (int i = 0; i < 3; i++) {
+            final month = quarter * 3 + i + 1;
+            final monthKey = month.toString().padLeft(2, '0');
+            groupedStats[monthKey] = {
+              'revenue': 0.0,
+              'profit': 0.0,
+              'orders': 0,
+            };
+            labels.add('T$month');
+          }
+          break;
+
+        case TimeFrame.monthly:
+          for (int i = 0; i < 4; i++) {
+            final weekKey = 'W$i';
+            groupedStats[weekKey] = {
+              'revenue': 0.0,
+              'profit': 0.0,
+              'orders': 0,
+            };
+            labels.add('Tuần ${i + 1}');
+          }
+          break;
+
+        case TimeFrame.weekly:
+          for (int i = 0; i < 7; i++) {
+            final date = startDate!.add(Duration(days: i));
+            final dayKey = DateFormat('yyyy-MM-dd').format(date);
+            groupedStats[dayKey] = {'revenue': 0.0, 'profit': 0.0, 'orders': 0};
+            labels.add('${date.day}/${date.month}');
+          }
+          break;
+
+        case TimeFrame.daily:
+          labels.clear();
+          groupedStats.clear();
+          for (int i = 0; i <= 6; i++) {
+            final hour = i * 4;
+            final hourKey = hour.toString().padLeft(2, '0');
+            print(hour);
+            groupedStats[hourKey] = {
+              'revenue': 0.0,
+              'profit': 0.0,
+              'orders': 0,
+            };
+            labels.add('${hour}h');
+          }
+          break;
+
+        case TimeFrame.custom:
+          final daysBetween = endDate!.difference(startDate!).inDays + 1;
+          for (int i = 0; i < daysBetween; i++) {
+            final date = startDate!.add(Duration(days: i));
+            final dayKey =
+                '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+            groupedStats[dayKey] = {'revenue': 0.0, 'profit': 0.0, 'orders': 0};
+            labels.add('${date.day}/${date.month}');
+          }
+          break;
       }
 
       for (var doc in ordersSnapshot.docs) {
@@ -129,26 +197,58 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
           totalProductsSold += quantity;
           totalProductsCostPrice += costPrice * quantity;
         }
-        print("Tổng giá trị tiền hàng gốc $totalProductsCostPrice");
-        final dateKey = DateTime(
-          orderDate.year,
-          orderDate.month,
-          orderDate.day,
-        );
 
-        final stats = dailyStats[dateKey]!;
-        stats['revenue'] += amount;
-        stats['profit'] += revenue;
-        stats['orders'] += 1;
+        String groupKey;
+
+        switch (selectedTimeFrame) {
+          case TimeFrame.yearly:
+            groupKey = orderDate.month.toString().padLeft(2, '0');
+            break;
+
+          case TimeFrame.quarterly:
+            groupKey = orderDate.month.toString().padLeft(2, '0');
+            break;
+
+          case TimeFrame.monthly:
+            final startOfMonth = DateTime(orderDate.year, orderDate.month, 1);
+            final dayOfMonth = orderDate.day;
+            final weekOfMonth = ((dayOfMonth - 1) / 7).floor();
+            groupKey = 'W$weekOfMonth';
+            break;
+
+          case TimeFrame.weekly:
+            groupKey = DateFormat('yyyy-MM-dd').format(orderDate);
+            break;
+
+          case TimeFrame.daily:
+            final hourGroup = (orderDate.hour / 4).floor() * 4;
+            groupKey = hourGroup.toString().padLeft(2, '0');
+            break;
+
+          case TimeFrame.custom:
+            groupKey = DateFormat('yyyy-MM-dd').format(orderDate);
+            break;
+        }
+
+        if (groupedStats.containsKey(groupKey)) {
+          print('Group found, updating stats for group: $groupKey');
+          final stats = groupedStats[groupKey]!;
+          stats['revenue'] += amount;
+          stats['profit'] += revenue;
+          stats['orders'] += 1;
+        } else {
+          print('WARNING: No matching group found for key: $groupKey');
+        }
       }
 
-      final sortedDates = dailyStats.keys.toList()..sort();
       List<FlSpot> revSpots = [];
       List<FlSpot> profSpots = [];
       List<FlSpot> ordSpots = [];
 
-      for (var i = 0; i < sortedDates.length; i++) {
-        final stats = dailyStats[sortedDates[i]]!;
+      final sortedKeys = groupedStats.keys.toList()..sort();
+
+      for (var i = 0; i < sortedKeys.length; i++) {
+        final stats = groupedStats[sortedKeys[i]]!;
         revSpots.add(FlSpot(i.toDouble(), stats['revenue']));
         profSpots.add(FlSpot(i.toDouble(), stats['profit']));
         ordSpots.add(FlSpot(i.toDouble(), stats['orders'].toDouble()));
@@ -165,6 +265,8 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
         revenueSpots = revSpots;
         profitSpots = profSpots;
         orderSpots = ordSpots;
+
+        statistics['chartLabels'] = labels;
       });
     } catch (e) {
       debugPrint('Error loading dashboard data: $e');
@@ -255,7 +357,6 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
 
     DateTimeRange? initialRange;
     if (startDate != null && endDate != null) {
-      // Ensure the initial range is valid
       final adjustedEndDate = endDate!.isAfter(lastDate) ? lastDate : endDate!;
       initialRange = DateTimeRange(start: startDate!, end: adjustedEndDate);
     }
@@ -278,13 +379,11 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
     if (picked != null) {
       setState(() {
         selectedTimeFrame = TimeFrame.custom;
-        // Set start date to beginning of the day
         startDate = DateTime(
           picked.start.year,
           picked.start.month,
           picked.start.day,
         );
-        // Set end date to end of the day
         endDate = DateTime(
           picked.end.year,
           picked.end.month,
@@ -421,7 +520,7 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
       );
     }
 
-    final interval = (spots.length / 8).ceil().toDouble();
+    final labels = (statistics['chartLabels'] as List<String>?) ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,25 +544,26 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
                 topTitles: AxisTitles(
                   sideTitles: SideTitles(showTitles: false),
                 ),
+
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 30,
-                    interval: interval,
                     getTitlesWidget: (value, meta) {
-                      if (value % interval != 0 || value >= spots.length) {
+                      final valueInt = value.toInt();
+                      if (valueInt < 0 || valueInt >= labels.length) {
                         return const SizedBox();
                       }
-                      final date = startDate!.add(
-                        Duration(days: value.toInt()),
-                      );
-                      return SideTitleWidget(
-                        axisSide: meta.axisSide,
-                        child: Text(
-                          '${date.day}/${date.month}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            labels[valueInt],
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       );
@@ -493,7 +593,7 @@ class _AdvancedDashboardState extends State<AdvancedDashboard> {
               lineBarsData: [
                 LineChartBarData(
                   spots: spots,
-                  isCurved: true,
+                  isCurved: false,
                   color: color,
                   barWidth: 3,
                   isStrokeCapRound: true,
