@@ -76,7 +76,7 @@ class OrderModel {
       shippingDate: (json['shippingDate'] as Timestamp?)?.toDate(),
       deliveryDate: (json['deliveryDate'] as Timestamp?)?.toDate(),
       paymentDate: (json['paymentDate'] as Timestamp?)?.toDate(),
-      conversionPoint: json['conversionPoint'],
+      conversionPoint: (json['conversionPoint'] as num?)?.toDouble(),
     );
   }
 

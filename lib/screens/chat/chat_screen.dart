@@ -35,7 +35,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     roomId = widget.roomId;
-    _fetchUserData();
+    _getChatRoomUserName();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
@@ -58,10 +58,29 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _getChatRoomUserName() async {
+    final docSnapshot =
+        await FirebaseFirestore.instance.collection('chats').doc(roomId).get();
+
+    if (docSnapshot.exists) {
+      final data = docSnapshot.data();
+      setState(() {
+        _isAdmin =
+            FirebaseAuth.instance.currentUser?.email.toString() ==
+            'admin@gmail.com';
+        _fullName = data?['userName'] ?? 'Người dùng ẩn danh';
+      });
+    }
+  }
+
   Future<void> _sendMessage() async {
     final user = FirebaseAuth.instance.currentUser;
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+    _controller.clear();
+    setState(() {
+      _isComposing = false;
+    });
 
     await FirebaseFirestore.instance
         .collection('chats')
@@ -83,11 +102,6 @@ class _ChatScreenState extends State<ChatScreen> {
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-    _controller.clear();
-    setState(() {
-      _isComposing = false;
-    });
-
     Future.delayed(Duration(milliseconds: 100), _scrollToBottom);
   }
 
@@ -98,37 +112,11 @@ class _ChatScreenState extends State<ChatScreen> {
     final messageDate = timestamp.toDate();
 
     if (now.difference(messageDate).inDays == 0) {
-      // Nếu tin nhắn được gửi hôm nay, hiển thị giờ
       return DateFormat.Hm().format(messageDate);
     } else if (now.difference(messageDate).inDays < 7) {
-      // Nếu tin nhắn được gửi trong tuần này, hiển thị ngày trong tuần
       return DateFormat('E, HH:mm').format(messageDate);
     } else {
-      // Nếu quá 1 tuần, hiển thị ngày tháng
       return DateFormat('dd/MM, HH:mm').format(messageDate);
-    }
-  }
-
-  void _fetchUserData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    try {
-      UserModel? userModel = await _userRepo.getUserDetails(user.uid);
-      if (userModel != null) {
-        setState(() {
-          _fullName = userModel.fullName;
-          _isAdmin = userModel.email == 'admin@gmail.com';
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Không tìm thấy dữ liệu người dùng")),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Lỗi tải dữ liệu: $e")));
     }
   }
 
@@ -160,29 +148,18 @@ class _ChatScreenState extends State<ChatScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _isAdmin ? "haha" : 'Trung tâm hỗ trợ',
+                  _isAdmin ? _fullName ?? "Hỗ trợ" : 'Trung tâm hỗ trợ',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  'Đang hoạt động',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.green,
-                    fontWeight: FontWeight.normal,
-                  ),
                 ),
               ],
             ),
           ],
         ),
-        actions: [IconButton(icon: Icon(Icons.more_vert), onPressed: () {})],
       ),
       body: Column(
         children: [
-          // Dải ngăn cách mỏng
           Container(height: 1, color: Colors.grey.withOpacity(0.2)),
 
-          // Khu vực hiển thị tin nhắn
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream:
@@ -202,7 +179,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 final messages = snapshot.data!.docs;
 
-                // Auto-scroll khi có tin nhắn mới
                 WidgetsBinding.instance.addPostFrameCallback(
                   (_) => _scrollToBottom(),
                 );
@@ -218,7 +194,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     final timestamp = message['timestamp'] as Timestamp?;
                     final time = _formatTimestamp(timestamp);
 
-                    // Kiểm tra xem có nên hiển thị ngày mới không
                     bool showDateSeparator = false;
                     if (index == 0) {
                       showDateSeparator = true;
@@ -277,10 +252,6 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.attach_file, color: textLightColor),
-                    onPressed: () {},
-                  ),
                   Expanded(
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 16),
