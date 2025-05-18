@@ -89,6 +89,37 @@ class _EditPasswordScreenState extends State<EditPasswordScreen>
   }
 
   Future<void> _changePassword() async {
+    // Validate passwords first
+    String currentPassword = _currentPasswordController.text.trim();
+    String newPassword = _newPasswordController.text.trim();
+    String confirmPassword = _confirmNewPasswordController.text.trim();
+
+    // Check if fields are empty
+    if (currentPassword.isEmpty ||
+        newPassword.isEmpty ||
+        confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Vui lòng nhập đầy đủ thông tin")),
+      );
+      return;
+    }
+
+    // Check password length
+    if (newPassword.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Mật khẩu mới phải có ít nhất 6 ký tự")),
+      );
+      return;
+    }
+
+    // Check if new password matches confirmation
+    if (newPassword != confirmPassword) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Mật khẩu mới không khớp")));
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -97,13 +128,13 @@ class _EditPasswordScreenState extends State<EditPasswordScreen>
         // Xác thực lại với mật khẩu cũ
         AuthCredential credential = EmailAuthProvider.credential(
           email: user.email!,
-          password: _currentPasswordController.text,
+          password: currentPassword,
         );
 
         await user.reauthenticateWithCredential(credential);
 
         // Đổi mật khẩu mới
-        await user.updatePassword(_newPasswordController.text);
+        await user.updatePassword(newPassword);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -116,10 +147,14 @@ class _EditPasswordScreenState extends State<EditPasswordScreen>
       String message;
       switch (e.code) {
         case 'wrong-password':
+        case 'invalid-credential':
           message = 'Mật khẩu hiện tại không đúng.';
           break;
         case 'weak-password':
           message = 'Mật khẩu mới quá yếu.';
+          break;
+        case 'requires-recent-login':
+          message = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
           break;
         default:
           message = e.message ?? 'Đã xảy ra lỗi.';

@@ -656,9 +656,19 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen>
                     );
                   },
                 ),
-                content: Text(
-                  'Bạn có chắc muốn khóa tài khoản của ${user.fullName}?',
-                  style: const TextStyle(color: Colors.black87),
+                content: FutureBuilder<bool>(
+                  future: _userRepository.isUserBanned(user.id!),
+                  builder: (context, snapshot) {
+                    return Text(
+                      snapshot.data == true
+                          ? 'Bạn có chắc muốn mở khóa tài khoản của ${user.fullName}?'
+                          : 'Bạn có chắc muốn khóa tài khoản của ${user.fullName}?',
+                      style: TextStyle(
+                        color:
+                            snapshot.data == true ? Colors.green : Colors.red,
+                      ),
+                    );
+                  },
                 ),
                 actions: [
                   TextButton(

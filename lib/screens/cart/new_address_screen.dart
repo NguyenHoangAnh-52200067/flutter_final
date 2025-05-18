@@ -318,6 +318,10 @@ class _NewAddressScreenState extends State<NewAddressScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: const Text(
           'Thêm địa chỉ mới',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
