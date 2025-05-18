@@ -646,9 +646,88 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         content: commentController.text,
                         rating: _userRepo.isUserId(userId) ? rating : null,
                         createdAt: DateTime.now(),
+                        reply: null,
                       );
                       await _commentRepo.addComment(comment);
                       await _loadComments();
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF2196F3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text('Gửi', style: TextStyle(color: Colors.white)),
+                  ),
+                ],
+              );
+            },
+          ),
+    );
+  }
+
+  void _showCommentReplyDialog(BuildContext context, String commentId) {
+    final commentController = TextEditingController();
+    final UserRepository _userRepo = UserRepository();
+    final CommentRepository _commentRepo = CommentRepository();
+    showDialog(
+      context: context,
+      builder:
+          (BuildContext context) => StatefulBuilder(
+            builder: (BuildContext context, StateSetter setDialogState) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                title: Text(
+                  'Trả lời bình luận',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1976D2),
+                  ),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_userRepo.isUserId(userId)) ...[],
+                    TextField(
+                      controller: commentController,
+                      decoration: InputDecoration(
+                        hintText: 'Nhập câu trả lời...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFFBBDEFB)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFF2196F3)),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Hủy',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final replyText = commentController.text.trim();
+                      if (replyText.isNotEmpty) {
+                        await _commentRepo.replyToComment(commentId, replyText);
+                        await _loadComments();
+                      }
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
@@ -787,8 +866,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ).format(comment.createdAt),
                                 style: TextStyle(color: Colors.grey[600]),
                               ),
+                              if (userMail == "admin@gmail.com")
+                                ElevatedButton(
+                                  onPressed:
+                                      () => _showCommentReplyDialog(
+                                        context,
+                                        comment.id.toString(),
+                                      ),
+                                  child: Text("Trả lời", style: TextStyle()),
+                                ),
                             ],
                           ),
+
                           if (comment.rating != null) ...[
                             const SizedBox(height: 8),
                             Row(
@@ -808,6 +897,54 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             comment.content,
                             style: TextStyle(color: Colors.black87),
                           ),
+                          if (comment.reply.toString().isNotEmpty &&
+                              comment.reply != null) ...[
+                            Container(
+                              margin: const EdgeInsets.only(top: 12),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Color(0xFFE3F2FD),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Color(0xFF90CAF9)),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.reply,
+                                    size: 20,
+                                    color: Color(0xFF1976D2),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Admin đã trả lời: ',
+
+                                          style: TextStyle(
+                                            color: Color(0xFF0D47A1),
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                          softWrap: true,
+                                        ),
+                                        Text(
+                                          comment.reply.toString(),
+                                          style: TextStyle(
+                                            color: Color(0xFF0D47A1),
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                          softWrap: true,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

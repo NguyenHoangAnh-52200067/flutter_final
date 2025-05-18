@@ -31,6 +31,13 @@ class CommentRepository extends GetxController {
     }
   }
 
+  Future<void> replyToComment(String commentId, String replyText) async {
+    await _db.collection("comments").doc(commentId).update({
+      "reply": replyText,
+      "replyAt": DateTime.now(),
+    });
+  }
+
   Future<List<CommentModel>> getProductComments(
     String productId, {
     int limit = 10,

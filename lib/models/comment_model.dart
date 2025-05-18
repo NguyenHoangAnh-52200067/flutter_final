@@ -7,6 +7,8 @@ class CommentModel {
   double? rating;
   String? orderId;
   DateTime createdAt;
+  String? reply;
+  DateTime? replyAt = null;
 
   CommentModel({
     this.id,
@@ -17,6 +19,7 @@ class CommentModel {
     this.rating,
     this.orderId,
     required this.createdAt,
+    this.reply,
   });
 
   Map<String, dynamic> toJson() {
@@ -42,6 +45,7 @@ class CommentModel {
       rating: json['rating']?.toDouble(),
       orderId: json['orderId'],
       createdAt: DateTime.parse(json['createdAt']),
+      reply: json['reply'],
     );
   }
 }
