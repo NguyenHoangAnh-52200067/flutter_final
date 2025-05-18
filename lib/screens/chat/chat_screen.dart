@@ -26,27 +26,44 @@ class _UploadingImage {
   _UploadingImage({required this.file, this.url, this.isUploading = true});
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final UserRepository _userRepo = UserRepository();
+
+  // Add pagination constants and variables
+  static const int _messagesPerPage = 20;
+  int _currentPage = 1;
+  bool _isLoadingMore = false;
+  bool _hasMoreMessages = true;
 
   String? _fullName;
   bool _isAdmin = false;
   bool _isComposing = false;
   Map<String, dynamic>? _tempMessage;
 
-  final Color primaryColor = Color(0xFF6C63FF);
-  final Color secondaryColor = Color(0xFFE8E6FF);
+  final Color primaryColor = Color(
+    0xFF2196F3,
+  ); // Changed from 0xFF6C63FF to blue
+  final Color secondaryColor = Color(0xFFE3F2FD); // Changed to light blue
   final Color backgroundColor = Color(0xFFF9F9FB);
-  final Color myMessageColor = Color(0xFF6C63FF);
+  final Color myMessageColor = Color(
+    0xFF2196F3,
+  ); // Changed from 0xFF6C63FF to blue
   final Color otherMessageColor = Color(0xFFF5F5F7);
   final Color textLightColor = Color(0xFF9E9E9E);
-  final Color accentColor = Color(0xFF4E4B9E);
+  final Color accentColor = Color(0xFF1976D2); // Changed to darker blue
 
   final ImageUploadService _imageUploadService =
       ImageUploadService.getInstance();
   List<_UploadingImage> _uploadingImages = [];
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnimation;
+
   Future<void> _handleBack() async {
     if (widget.fromAdmin) {
       await FirebaseFirestore.instance
@@ -61,7 +78,104 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _getChatRoomUserName();
+    // Add scroll listener for pagination
+    _scrollController.addListener(_scrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+
+    // Initialize animations
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeIn));
+
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+    );
+
+    // Start animations
+    _fadeController.forward();
+    _slideController.forward();
+    _scaleController.forward();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    _controller.dispose();
+    _fadeController.dispose();
+    _slideController.dispose();
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  // Add scroll listener for pagination
+  void _scrollListener() {
+    if (_scrollController.position.pixels <= 100 &&
+        !_isLoadingMore &&
+        _hasMoreMessages) {
+      _loadMoreMessages();
+    }
+  }
+
+  // Method to load more messages when scrolling up
+  Future<void> _loadMoreMessages() async {
+    if (_isLoadingMore) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final messagesRef = FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.roomId)
+          .collection('messages');
+
+      // Get the current messages to find the oldest one
+      final currentMessages =
+          await messagesRef
+              .orderBy('timestamp', descending: true)
+              .limit(_currentPage * _messagesPerPage)
+              .get();
+
+      if (currentMessages.docs.length < _currentPage * _messagesPerPage) {
+        // No more messages to load
+        setState(() {
+          _hasMoreMessages = false;
+          _isLoadingMore = false;
+        });
+        return;
+      }
+
+      // Increment page for next load
+      setState(() {
+        _currentPage++;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+      });
+      print('Error loading more messages: $e');
+    }
   }
 
   Future<void> _pickImages() async {
@@ -292,6 +406,23 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // Add this method to show a loading indicator when fetching more messages
+  Widget _buildLoadingMoreIndicator() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Container(
+          width: 30,
+          height: 30,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -304,6 +435,12 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Scaffold(
         backgroundColor: backgroundColor,
         appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () async {
+              await _handleBack();
+            },
+          ),
           elevation: 0,
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
@@ -412,7 +549,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         .collection('chats')
                         .doc(widget.roomId)
                         .collection('messages')
-                        .orderBy('timestamp')
+                        .orderBy('timestamp', descending: true)
+                        .limit(_currentPage * _messagesPerPage)
                         .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
@@ -428,13 +566,17 @@ class _ChatScreenState extends State<ChatScreen> {
                     messages.map((doc) => doc.data() as Map<String, dynamic>),
                   );
 
+                  // Reverse to show in chronological order
+                  allMessages.sort((a, b) {
+                    final aTime = a['timestamp'] as Timestamp?;
+                    final bTime = b['timestamp'] as Timestamp?;
+                    if (aTime == null || bTime == null) return 0;
+                    return aTime.compareTo(bTime);
+                  });
+
                   if (_tempMessage != null) {
                     allMessages.add(_tempMessage!);
                   }
-
-                  WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => _scrollToBottom(),
-                  );
 
                   if (allMessages.isEmpty) {
                     return Center(
@@ -444,19 +586,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           SizedBox(height: 16),
                           Text(
                             'Chưa có tin nhắn nào',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Hãy bắt đầu cuộc trò chuyện',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[500],
-                            ),
+                            style: TextStyle(color: textLightColor),
                           ),
                         ],
                       ),
@@ -465,10 +595,37 @@ class _ChatScreenState extends State<ChatScreen> {
 
                   return ListView.builder(
                     controller: _scrollController,
+                    reverse: false,
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: allMessages.length,
+                    itemCount: allMessages.length + (_hasMoreMessages ? 1 : 0),
                     itemBuilder: (context, index) {
-                      final message = allMessages[index];
+                      // Show loading indicator at the top when loading more
+                      if (index == 0 && _isLoadingMore) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  primaryColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      // Adjust index if showing loading indicator
+                      final messageIndex = _isLoadingMore ? index - 1 : index;
+                      if (messageIndex < 0 ||
+                          messageIndex >= allMessages.length) {
+                        return SizedBox.shrink();
+                      }
+
+                      final message = allMessages[messageIndex];
                       final isMe = message['senderId'] == userId;
                       final timestamp = message['timestamp'] as Timestamp?;
                       final time = _formatTimestamp(timestamp);
@@ -760,140 +917,148 @@ class _ChatScreenState extends State<ChatScreen> {
     bool isTemp,
     bool showAvatar,
   ) {
-    final hasText = (message['text'] as String?)?.isNotEmpty ?? false;
-    List<dynamic> imageContent = [];
+    final text = message['text'] as String? ?? '';
+    final images = message['images'] as List<dynamic>? ?? [];
+    final tempImages = message['tempImages'] as List<File>? ?? [];
 
-    if (isTemp && message['tempImages'] != null) {
-      imageContent = message['tempImages'] as List<dynamic>;
-    } else if (message['images'] != null) {
-      imageContent = List<String>.from(message['images']);
-    }
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: 2),
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment:
             isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe && showAvatar)
-            Container(
-              margin: EdgeInsets.only(right: 8),
-              child: CircleAvatar(
-                backgroundColor: accentColor.withOpacity(0.2),
-                radius: 16,
-                child: Icon(Icons.support_agent, size: 16, color: accentColor),
-              ),
+            CircleAvatar(
+              backgroundColor: primaryColor.withOpacity(0.2),
+              radius: 16,
+              child: Icon(Icons.support_agent, color: primaryColor, size: 18),
             )
           else if (!isMe && !showAvatar)
-            SizedBox(width: 40),
+            SizedBox(width: 32),
+
+          if (!isMe) SizedBox(width: 8),
 
           Flexible(
             child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.75,
-              ),
-              margin: EdgeInsets.only(
-                bottom: 4,
-                left: isMe ? 48 : 0,
-                right: isMe ? 0 : 48,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color:
-                    isMe
-                        ? (isTemp
-                            ? primaryColor.withOpacity(0.7)
-                            : primaryColor)
-                        : otherMessageColor,
+                color: isMe ? primaryColor : Colors.white,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(isMe || !showAvatar ? 16 : 4),
-                  topRight: Radius.circular(isMe && showAvatar ? 4 : 16),
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
+                  topLeft: Radius.circular(18),
+                  topRight: Radius.circular(18),
+                  bottomLeft: isMe ? Radius.circular(18) : Radius.circular(4),
+                  bottomRight: isMe ? Radius.circular(4) : Radius.circular(18),
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
-                    blurRadius: 3,
-                    offset: Offset(0, 1),
+                    blurRadius: 5,
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
-              child: Padding(
-                padding: EdgeInsets.all(imageContent.isNotEmpty ? 8 : 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (imageContent.isNotEmpty)
-                      Container(
-                        margin: EdgeInsets.only(bottom: hasText ? 8 : 0),
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children:
-                              isTemp
-                                  ? imageContent
-                                      .map(
-                                        (file) => _buildTempImagePreview(file),
-                                      )
-                                      .toList()
-                                  : (imageContent as List<String>)
-                                      .map((url) => _buildClickableImage(url))
-                                      .toList(),
-                        ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Message content
+                  if (text.isNotEmpty)
+                    Text(
+                      text,
+                      style: TextStyle(
+                        color: isMe ? Colors.white : Colors.black87,
+                        fontSize: 15,
                       ),
-                    if (hasText)
-                      Text(
-                        message['text'],
-                        style: TextStyle(
-                          color: isMe ? Colors.white : Colors.black87,
-                          fontSize: 15,
-                        ),
+                    ),
+
+                  // Images
+                  if (images.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children:
+                            images
+                                .map(
+                                  (url) => _buildClickableImage(url.toString()),
+                                )
+                                .toList(),
                       ),
-                    SizedBox(height: 4),
-                    Row(
+                    ),
+
+                  // Temp images
+                  if (tempImages.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children:
+                            tempImages
+                                .map((file) => _buildTempImagePreview(file))
+                                .toList(),
+                      ),
+                    ),
+
+                  // Timestamp
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisAlignment:
+                          isMe
+                              ? MainAxisAlignment.end
+                              : MainAxisAlignment.start,
                       children: [
-                        Text(
-                          isTemp ? 'Đang gửi...' : time,
-                          style: TextStyle(
-                            color: isMe ? Colors.white70 : textLightColor,
-                            fontSize: 11,
-                            fontStyle:
-                                isTemp ? FontStyle.italic : FontStyle.normal,
-                          ),
-                        ),
                         if (isTemp)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4),
-                            child: SizedBox(
-                              width: 10,
-                              height: 10,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 1.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  isMe ? Colors.white70 : Colors.grey,
-                                ),
-                              ),
+                          Icon(
+                            Icons.access_time,
+                            size: 10,
+                            color: isMe ? Colors.white70 : Colors.black38,
+                          )
+                        else
+                          Text(
+                            time,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isMe ? Colors.white70 : Colors.black38,
                             ),
                           ),
-                        if (!isTemp && isMe)
+                        if (isMe)
                           Padding(
-                            padding: const EdgeInsets.only(left: 4),
+                            padding: const EdgeInsets.only(left: 4.0),
                             child: Icon(
-                              Icons.check_circle,
-                              size: 10,
+                              Icons.done_all,
+                              size: 12,
                               color: Colors.white70,
                             ),
                           ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
+
+          if (isMe) SizedBox(width: 8),
+
+          if (isMe && showAvatar)
+            CircleAvatar(
+              backgroundColor: Colors.blue.shade100,
+              radius: 16,
+              child: Text(
+                'Me',
+                style: TextStyle(
+                  color: primaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            )
+          else if (isMe && !showAvatar)
+            SizedBox(width: 32),
         ],
       ),
     );

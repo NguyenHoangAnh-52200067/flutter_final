@@ -33,11 +33,16 @@ class AdminInboxScreen extends StatelessWidget {
   }
 
   Future<String> loadUserData(String userId) async {
-    user = await _userRepository.getUserDetails(userId);
-    if (user == null) {
+    try {
+      user = await _userRepository.getUserDetails(userId);
+      if (user == null || user!.linkImage == null) {
+        return "";
+      }
+      return user!.linkImage.toString();
+    } catch (e) {
+      print("Error loading user data: $e");
       return "";
     }
-    return user!.linkImage.toString();
   }
 
   @override
@@ -45,6 +50,10 @@ class AdminInboxScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
         elevation: 0,
         backgroundColor: Colors.blue,
         centerTitle: false,
@@ -153,45 +162,66 @@ class AdminInboxScreen extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 26,
-                            backgroundColor: color.withOpacity(0.8),
-                            child:
-                                imageUrl.toString().isEmpty
-                                    ? Text(
-                                      userInitial,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )
-                                    : CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                        imageUrl.toString(),
-                                      ),
-                                    ),
-                          ),
-                          if (isUnread)
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: Container(
-                                height: 14,
-                                width: 14,
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
+                      FutureBuilder<String>(
+                        future: loadUserData(userId),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircleAvatar(
+                              radius: 26,
+                              backgroundColor: color.withOpacity(0.8),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
                                 ),
                               ),
-                            ),
-                        ],
+                            );
+                          }
+
+                          final imageUrl = snapshot.data ?? "";
+                          return Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 26,
+                                backgroundColor: color.withOpacity(0.8),
+                                child:
+                                    imageUrl.isEmpty
+                                        ? Text(
+                                          userInitial,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                        : CircleAvatar(
+                                          radius: 25,
+                                          backgroundImage: NetworkImage(
+                                            imageUrl,
+                                          ),
+                                        ),
+                              ),
+                              if (isUnread)
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: Container(
+                                    height: 14,
+                                    width: 14,
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(width: 16),
                       Expanded(
