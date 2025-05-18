@@ -5,6 +5,7 @@ import 'package:ecommerce_app/models/product_model.dart';
 import 'package:ecommerce_app/repository/category_repository.dart';
 import 'package:ecommerce_app/repository/product_repository.dart';
 import 'package:ecommerce_app/utils/image_upload.dart';
+import 'package:ecommerce_app/utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -47,7 +48,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
   void _loadProductData() {
     _nameController.text = widget.product.productName;
     _descriptionController.text = widget.product.description;
-    _priceController.text = widget.product.price.toString();
+    _priceController.text = Utils.formatCurrency(widget.product.price);
+    _costPriceController.text = Utils.formatCurrency(widget.product.costPrice);
     _brandController.text = widget.product.brand;
     _stockController.text = widget.product.stock.toString();
     _discountController.text = widget.product.discount.toString();
@@ -106,12 +108,24 @@ class _EditProductScreenState extends State<EditProductScreen> {
         return;
       }
 
+      // Improved parsing for price and costPrice
+      String priceText =
+          _priceController.text.replaceAll('₫', '').replaceAll('.', '').trim();
+      String costPriceText =
+          _costPriceController.text
+              .replaceAll('₫', '')
+              .replaceAll('.', '')
+              .trim();
+
+      double price = double.tryParse(priceText) ?? 0.0;
+      double costPrice = double.tryParse(costPriceText) ?? 0.0;
+
       final updatedProduct = ProductModel(
         id: widget.product.id,
         productName: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
-        price: double.parse(_priceController.text.trim()),
-        costPrice: double.parse(_costPriceController.text.trim()),
+        price: price,
+        costPrice: costPrice,
         brand: _brandController.text.trim(),
         categoryId: _selectedCategory!,
         stock: int.parse(_stockController.text.trim()),
@@ -132,8 +146,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text("Chỉnh sửa sản phẩm"),
-        backgroundColor: const Color(0xFF7AE582),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          "Chỉnh sửa sản phẩm",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blue,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -179,7 +200,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7AE582),
+                      backgroundColor:
+                          Colors
+                              .blue, // Changed from Color(0xFF7AE582) to Colors.blue
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -203,7 +226,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 child: ElevatedButton(
                   onPressed: () => _updateProduct(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7AE582),
+                    backgroundColor:
+                        Colors
+                            .blue, // Changed from Color(0xFF7AE582) to Colors.blue
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

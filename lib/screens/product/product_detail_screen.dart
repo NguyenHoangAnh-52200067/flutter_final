@@ -47,6 +47,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late String productId;
   late ProductModel currentProduct;
   String userId = "";
+  String userMail = "";
   List<CommentModel> comments = [];
 
   @override
@@ -85,9 +86,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   void _loadUserId() async {
     final id = await _userRepo.getEffectiveUserId();
-    print("User ID: $id");
+    final user = await _userRepo.getUserDetails(id);
     setState(() {
       userId = id;
+      userMail = user?.email ?? "";
     });
   }
 
@@ -928,10 +930,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   return const SizedBox();
                 }
 
-                if (snapshot.hasData &&
-                    _userRepo.isUserId(snapshot.data!) &&
-                    _userRepo.getUserRole(snapshot.data!) == 'admin' &&
-                    widget.product.parentId == null) {
+                if (userMail == 'admin@gmail.com') {
                   return Center(
                     child: SizedBox(
                       width: double.infinity,

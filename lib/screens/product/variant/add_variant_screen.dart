@@ -36,6 +36,7 @@ class _AddVariantScreenState extends State<AddVariantScreen> {
     _nameController = TextEditingController();
     _priceController = TextEditingController();
     _stockController = TextEditingController();
+    _costPriceController = TextEditingController();
   }
 
   @override
@@ -43,6 +44,7 @@ class _AddVariantScreenState extends State<AddVariantScreen> {
     _nameController.dispose();
     _priceController.dispose();
     _stockController.dispose();
+    _costPriceController.dispose();
     super.dispose();
   }
 
@@ -120,8 +122,15 @@ class _AddVariantScreenState extends State<AddVariantScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Thêm biến thể"),
-        backgroundColor: const Color(0xFF7AE582),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          "Thêm biến thể",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blue,
         centerTitle: true,
       ),
       body: Padding(
@@ -157,7 +166,7 @@ class _AddVariantScreenState extends State<AddVariantScreen> {
                 child: ElevatedButton(
                   onPressed: () => _saveVariant(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7AE582),
+                    backgroundColor: Colors.blue,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -192,7 +201,7 @@ class _AddVariantScreenState extends State<AddVariantScreen> {
                 Container(
                   width: 5,
                   height: 20,
-                  color: const Color(0xFF7AE582),
+                  color: Colors.blue,
                   margin: const EdgeInsets.only(right: 10),
                 ),
                 Text(

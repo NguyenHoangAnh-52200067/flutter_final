@@ -422,11 +422,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 );
               },
             ),
-            _buildDrawerItem(Icons.dashboard, "Hỗ trợ khách hàng", () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => AdminInboxScreen()),
-              );
-            }),
+            _buildDrawerItem(
+              Icons.support_agent_outlined,
+              "Hỗ trợ khách hàng",
+              () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => AdminInboxScreen()),
+                );
+              },
+            ),
             const Spacer(),
             _buildLogoutItem(),
           ],
