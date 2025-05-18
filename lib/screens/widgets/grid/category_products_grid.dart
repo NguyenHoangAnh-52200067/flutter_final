@@ -1,8 +1,10 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ecommerce_app/models/product_model.dart';
 import 'package:ecommerce_app/repository/product_repository.dart';
 import 'package:ecommerce_app/screens/widgets/card/product_card.dart';
+import 'package:animate_do/animate_do.dart'; // Thêm thư viện animate_do
 
 class CategoryProductsGrid extends StatefulWidget {
   final String categoryName;
@@ -99,37 +101,106 @@ class _CategoryProductsGridState extends State<CategoryProductsGrid> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Danh mục các sản phẩm $categoryName'),
-        backgroundColor: const Color(0xFF7AE582),
-      ),
-      body: GridView.builder(
-        controller: _effectiveScrollController, // Use the effective controller
-        padding: widget.padding ?? const EdgeInsets.all(8),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: widget.crossAxisCount,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          mainAxisExtent: 280,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.white, Color(0xFFBBDEFB)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            Column(
+              children: [
+                FadeInDown(
+                  duration: Duration(milliseconds: 500),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF2196F3).withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        ZoomIn(
+                          duration: Duration(milliseconds: 300),
+                          child: IconButton(
+                            icon: Icon(Icons.arrow_back, color: Colors.white),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Danh mục các sản phẩm $categoryName',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(width: 48),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 8),
+                Expanded(
+                  child: FadeInUp(
+                    duration: Duration(milliseconds: 600),
+                    child: GridView.builder(
+                      controller: _effectiveScrollController,
+                      padding: widget.padding ?? const EdgeInsets.all(8),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: widget.crossAxisCount,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        mainAxisExtent: 280,
+                      ),
+                      itemCount: _products.length + (_hasMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == _products.length) {
+                          return _buildLoadingIndicator();
+                        }
+                        return FadeInUp(
+                          duration: Duration(milliseconds: 700 + index * 100),
+                          child: ProductCard(product: _products[index]),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        itemCount: _products.length + (_hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == _products.length) {
-            return _buildLoadingIndicator();
-          }
-          return ProductCard(product: _products[index]);
-        },
       ),
     );
   }
 
   Widget _buildLoadingIndicator() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).primaryColor,
+    return FadeIn(
+      duration: Duration(milliseconds: 500),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2196F3)),
           ),
         ),
       ),
