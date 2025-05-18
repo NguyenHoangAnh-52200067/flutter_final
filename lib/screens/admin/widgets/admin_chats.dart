@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecommerce_app/models/user_model.dart';
 import 'package:ecommerce_app/repository/user_repository.dart';
 import 'package:ecommerce_app/screens/chat/chat_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,9 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:intl/intl.dart';
+import 'package:ecommerce_app/repository/user_repository.dart';
 
 class AdminInboxScreen extends StatelessWidget {
-  const AdminInboxScreen({super.key});
+  AdminInboxScreen({super.key});
+  UserModel? user;
+  final UserRepository _userRepository = UserRepository();
 
   String getRoomId(String uid1, String uid2) {
     return uid1.compareTo(uid2) < 0 ? '${uid1}_$uid2' : '${uid2}_$uid1';
@@ -26,6 +30,14 @@ class AdminInboxScreen extends StatelessWidget {
     } else {
       return DateFormat('dd/MM').format(dateTime);
     }
+  }
+
+  Future<String> loadUserData(String userId) async {
+    user = await _userRepository.getUserDetails(userId);
+    if (user == null) {
+      return "";
+    }
+    return user!.linkImage.toString();
   }
 
   @override
@@ -113,7 +125,7 @@ class AdminInboxScreen extends StatelessWidget {
               final timestamp = chat['lastTimestamp'] as Timestamp;
               final isUnread = chat['adminUnread'] == true;
               final userInitial = customerName[0].toUpperCase();
-              final imageUrl = UserRepository().getUserDetails(userId);
+              final imageUrl = loadUserData(userId);
 
               final color =
                   Colors.primaries[userId.hashCode % Colors.primaries.length];
