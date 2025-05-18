@@ -1,28 +1,39 @@
 import 'package:ecommerce_app/models/user_model.dart';
 import 'package:ecommerce_app/repository/user_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui';
+import 'package:image_picker/image_picker.dart';
+import 'package:ecommerce_app/utils/image_upload.dart';
+import 'dart:io';
+import 'package:path/path.dart' as path;
 
 class ChatScreen extends StatefulWidget {
   final String roomId;
   const ChatScreen({super.key, required this.roomId});
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
+class _UploadingImage {
+  final File file;
+  String? url;
+  bool isUploading;
+
+  _UploadingImage({required this.file, this.url, this.isUploading = true});
+}
+
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
-  String roomId = 'room1';
   final ScrollController _scrollController = ScrollController();
-  bool _isComposing = false;
   final UserRepository _userRepo = UserRepository();
+
   String? _fullName;
   bool _isAdmin = false;
+  bool _isComposing = false;
+  Map<String, dynamic>? _tempMessage;
 
   final Color primaryColor = Color(0xFF6C63FF);
   final Color secondaryColor = Color(0xFFE8E6FF);
@@ -31,41 +42,48 @@ class _ChatScreenState extends State<ChatScreen> {
   final Color otherMessageColor = Color(0xFFF5F5F7);
   final Color textLightColor = Color(0xFF9E9E9E);
 
+  final ImageUploadService _imageUploadService =
+      ImageUploadService.getInstance();
+  List<File> _pendingImages = [];
+
+  List<_UploadingImage> _uploadingImages = [];
   @override
   void initState() {
     super.initState();
-    roomId = widget.roomId;
     _getChatRoomUserName();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToBottom();
+  Future<void> _pickImages() async {
+    final List<XFile>? pickedFiles = await ImagePicker().pickMultiImage();
+    if (pickedFiles == null) return;
+
+    List<_UploadingImage> newUploads =
+        pickedFiles.map((xfile) {
+          return _UploadingImage(file: File(xfile.path), isUploading: false);
+        }).toList();
+
+    setState(() {
+      _uploadingImages.addAll(newUploads);
+      _isComposing = true;
     });
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _uploadingImages.removeAt(index);
+    });
+  }
+
+  final ImagePicker _picker = ImagePicker();
+
+  Future<File?> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    return image != null ? File(image.path) : null;
   }
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      final threshold = 100;
-      final shouldScroll =
-          _scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - threshold;
-
-      if (shouldScroll) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    }
-  }
-
-  void _openAppScroll() {
-    final threshold = 100;
-    final shouldScroll =
-        _scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - threshold;
-
-    if (shouldScroll) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: Duration(milliseconds: 300),
@@ -76,22 +94,59 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _getChatRoomUserName() async {
     final docSnapshot =
-        await FirebaseFirestore.instance.collection('chats').doc(roomId).get();
+        await FirebaseFirestore.instance
+            .collection('chats')
+            .doc(widget.roomId)
+            .get();
 
     if (docSnapshot.exists) {
       final data = docSnapshot.data();
       setState(() {
         _isAdmin =
-            FirebaseAuth.instance.currentUser?.email.toString() ==
-            'admin@gmail.com';
-        _fullName = data?['userName'] ?? 'Người dùng ẩn danh';
+            FirebaseAuth.instance.currentUser?.email == 'admin@gmail.com';
+        _fullName = data?['customerName'] ?? 'Người dùng ẩn danh';
       });
     }
   }
 
-  Future<void> _sendMessage(String text) async {
+  Future<void> _sendMessage(
+    String text,
+    TextEditingController controller,
+  ) async {
     final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null || text.trim().isEmpty) return;
+
+    if (currentUser == null ||
+        (text.trim().isEmpty && _uploadingImages.isEmpty)) {
+      print("null");
+      return;
+    }
+
+    final tempImages = List<_UploadingImage>.from(_uploadingImages);
+    final tempImageFiles = tempImages.map((img) => img.file).toList();
+    final tempMessageText = text;
+
+    controller.clear();
+
+    if (!tempImageFiles.isEmpty) {
+      setState(() {
+        _tempMessage = {
+          'text': tempMessageText,
+          'senderId': currentUser.uid,
+          'timestamp': Timestamp.now(),
+          'tempImages': tempImageFiles,
+        };
+
+        _uploadingImages.clear();
+        _isComposing = false;
+      });
+    }
+
+    List<String> imageUrls = [];
+    for (int i = 0; i < tempImages.length; i++) {
+      final img = tempImages[i];
+      final uploadedUrl = await _imageUploadService.uploadImage(img.file);
+      imageUrls.add(uploadedUrl);
+    }
 
     final chatDocRef = FirebaseFirestore.instance
         .collection('chats')
@@ -102,20 +157,22 @@ class _ChatScreenState extends State<ChatScreen> {
     final uid1 = parts[0];
     final uid2 = parts[1];
     final customerId = (uid1 == 'admin') ? uid2 : uid1;
-
-    UserModel? userModel = await _userRepo.getUserDetails(currentUser.uid);
+    UserModel? userModel = await _userRepo.getUserDetails(customerId);
     final customerName = userModel?.fullName ?? 'Người dùng';
     final chatDocSnapshot = await chatDocRef.get();
     final originalUserId = chatDocSnapshot.data()?['userId'] ?? customerId;
 
     await messagesRef.add({
-      'text': text,
+      'text': tempMessageText,
+      'images': imageUrls,
       'senderId': currentUser.uid,
       'timestamp': FieldValue.serverTimestamp(),
     });
-
+    setState(() {
+      _tempMessage = null;
+    });
     await chatDocRef.set({
-      'lastMessage': text,
+      'lastMessage': tempMessageText,
       'lastTimestamp': FieldValue.serverTimestamp(),
       'userId': originalUserId,
       'customerName': customerName,
@@ -124,7 +181,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String _formatTimestamp(Timestamp? timestamp) {
     if (timestamp == null) return '';
-
     final now = DateTime.now();
     final messageDate = timestamp.toDate();
 
@@ -137,9 +193,40 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Widget _buildClickableImage(String url) {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder:
+              (_) =>
+                  Dialog(child: InteractiveViewer(child: Image.network(url))),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(url, width: 160, height: 160, fit: BoxFit.cover),
+      ),
+    );
+  }
+
+  Widget _buildTempImagePreview(File file) {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        image: DecorationImage(
+          image: FileImage(file),
+          fit: BoxFit.cover,
+          opacity: 0.7,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    _openAppScroll();
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
@@ -183,19 +270,28 @@ class _ChatScreenState extends State<ChatScreen> {
               stream:
                   FirebaseFirestore.instance
                       .collection('chats')
-                      .doc(roomId)
+                      .doc(widget.roomId)
                       .collection('messages')
                       .orderBy('timestamp')
                       .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData)
+                if (!snapshot.hasData) {
                   return Center(
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                     ),
                   );
+                }
 
                 final messages = snapshot.data!.docs;
+                final allMessages = List<Map<String, dynamic>>.from(
+                  messages.map((doc) => doc.data() as Map<String, dynamic>),
+                );
+
+                // Thêm tin nhắn giả nếu có
+                if (_tempMessage != null) {
+                  allMessages.add(_tempMessage!);
+                }
 
                 WidgetsBinding.instance.addPostFrameCallback(
                   (_) => _scrollToBottom(),
@@ -204,20 +300,20 @@ class _ChatScreenState extends State<ChatScreen> {
                 return ListView.builder(
                   controller: _scrollController,
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: messages.length,
+                  itemCount: allMessages.length,
                   itemBuilder: (context, index) {
-                    final message =
-                        messages[index].data() as Map<String, dynamic>;
+                    final message = allMessages[index];
                     final isMe = message['senderId'] == userId;
                     final timestamp = message['timestamp'] as Timestamp?;
                     final time = _formatTimestamp(timestamp);
+                    final isTemp = message == _tempMessage;
 
                     bool showDateSeparator = false;
                     if (index == 0) {
                       showDateSeparator = true;
                     } else {
                       final prevTimestamp =
-                          messages[index - 1]['timestamp'] as Timestamp?;
+                          allMessages[index - 1]['timestamp'] as Timestamp?;
                       if (prevTimestamp != null && timestamp != null) {
                         final prevDate = DateTime(
                           prevTimestamp.toDate().year,
@@ -243,8 +339,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 16.0),
                             child: _buildDateSeparator(timestamp),
                           ),
-
-                        _buildMessageBubble(isMe, message, time),
+                        _buildMessageBubble(message, isMe, time, isTemp),
                       ],
                     );
                   },
@@ -253,83 +348,138 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
 
+          _buildMessageInput(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageInput() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (_uploadingImages.isNotEmpty)
           Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  offset: Offset(0, -2),
-                  blurRadius: 4,
-                  color: Colors.black.withOpacity(0.05),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
+            height: 90,
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _uploadingImages.length,
+              itemBuilder: (context, index) {
+                final img = _uploadingImages[index];
+                return Stack(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(right: 8),
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: TextField(
-                        controller: _controller,
-                        maxLines: null,
-                        textCapitalization: TextCapitalization.sentences,
-                        decoration: InputDecoration(
-                          hintText: 'Nhập tin nhắn...',
-                          hintStyle: TextStyle(color: textLightColor),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 12),
+                        borderRadius: BorderRadius.circular(8),
+                        image: DecorationImage(
+                          image: FileImage(img.file),
+                          fit: BoxFit.cover,
                         ),
-                        onChanged: (text) {
-                          setState(() {
-                            _isComposing = text.trim().isNotEmpty;
-                          });
-                        },
                       ),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  AnimatedContainer(
-                    duration: Duration(milliseconds: 200),
-                    decoration: BoxDecoration(
-                      color: _isComposing ? primaryColor : Colors.transparent,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.send_rounded,
-                        color: _isComposing ? Colors.white : textLightColor,
-                      ),
-                      onPressed:
-                          _isComposing
-                              ? () async {
-                                await _sendMessage(_controller.text);
-                                _controller.clear();
-                                setState(() {
-                                  _isComposing = false;
-                                });
-                              }
+                      child:
+                          img.isUploading
+                              ? Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
                               : null,
                     ),
-                  ),
-                ],
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () => _removeImage(index),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+
+        Row(
+          children: [
+            IconButton(icon: Icon(Icons.image), onPressed: _pickImages),
+            Expanded(
+              child: TextField(
+                onChanged: (text) {
+                  setState(() {
+                    _isComposing = text.trim().isNotEmpty;
+                  });
+                },
+                controller: _controller,
+                decoration: InputDecoration(hintText: 'Nhập tin nhắn...'),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.send),
+              onPressed:
+                  (_isComposing || _uploadingImages.isNotEmpty)
+                      ? () => _sendMessage(_controller.text, _controller)
+                      : null,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImagePreview(File file, bool isUploading) {
+    final index = _pendingImages.indexOf(file);
+    return Stack(
+      children: [
+        Container(
+          margin: EdgeInsets.only(right: 8),
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            image: DecorationImage(image: FileImage(file), fit: BoxFit.cover),
+          ),
+          child:
+              isUploading
+                  ? Center(child: CircularProgressIndicator(strokeWidth: 2))
+                  : null,
+        ),
+        if (!isUploading)
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () => setState(() => _pendingImages.removeAt(index)),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.close, color: Colors.white, size: 16),
               ),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
   Widget _buildDateSeparator(Timestamp timestamp) {
     final date = timestamp.toDate();
     final now = DateTime.now();
-    final yesterday = DateTime.now().subtract(Duration(days: 1));
+    final yesterday = now.subtract(Duration(days: 1));
 
     String dateText;
     if (date.year == now.year &&
@@ -364,51 +514,55 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageBubble(
-    bool isMe,
     Map<String, dynamic> message,
+    bool isMe,
     String time,
+    bool isTemp,
   ) {
+    final hasText = (message['text'] as String?)?.isNotEmpty ?? false;
+    List<dynamic> imageContent = [];
+
+    if (isTemp && message['tempImages'] != null) {
+      // Hiển thị ảnh từ file cho tin nhắn giả
+      imageContent = message['tempImages'] as List<dynamic>;
+    } else if (message['images'] != null) {
+      // Hiển thị ảnh từ URL cho tin nhắn thật
+      imageContent = List<String>.from(message['images']);
+    }
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        margin: EdgeInsets.only(
-          top: 4,
-          bottom: 4,
-          left: isMe ? 48 : 0,
-          right: isMe ? 0 : 48,
-        ),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isMe ? myMessageColor : otherMessageColor,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(isMe ? 16 : 4),
-            topRight: Radius.circular(isMe ? 4 : 16),
-            bottomLeft: Radius.circular(16),
-            bottomRight: Radius.circular(16),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
+          color:
+              isMe
+                  ? (isTemp ? Colors.blue[50] : Colors.blue[100])
+                  : Colors.grey[300],
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Text(
-                message['text'] ?? '',
-                style: TextStyle(
-                  color: isMe ? Colors.white : Colors.black87,
-                  fontSize: 16,
-                ),
+            if (imageContent.isNotEmpty)
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children:
+                    isTemp
+                        ? imageContent
+                            .map((file) => _buildTempImagePreview(file))
+                            .toList()
+                        : (imageContent as List<String>)
+                            .map((url) => _buildClickableImage(url))
+                            .toList(),
               ),
-            ),
+            if (hasText)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(message['text']),
+              ),
             Padding(
               padding: EdgeInsets.only(right: 8, bottom: 4, left: 8),
               child: Row(
@@ -416,20 +570,50 @@ class _ChatScreenState extends State<ChatScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    time,
+                    isTemp ? 'Đang gửi...' : time,
                     style: TextStyle(
                       color: isMe ? Colors.white70 : textLightColor,
                       fontSize: 11,
+                      fontStyle: isTemp ? FontStyle.italic : FontStyle.normal,
                     ),
                   ),
-                  if (isMe) ...[
-                    SizedBox(width: 4),
-                    Icon(Icons.done_all, size: 14, color: Colors.white70),
-                  ],
+                  if (isTemp)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: SizedBox(
+                        width: 10,
+                        height: 10,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isMe ? Colors.white70 : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class FullScreenImageViewer extends StatelessWidget {
+  final String imageUrl;
+
+  const FullScreenImageViewer({super.key, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: Center(
+          child: Hero(tag: imageUrl, child: Image.network(imageUrl)),
         ),
       ),
     );

@@ -32,7 +32,7 @@ class AdminInboxScreen extends StatelessWidget {
               final chat = chats[index];
               final userId = chat['userId'];
               final customerName = chat['customerName'] ?? 'Người dùng';
-              final lastMessage = chat['lastMessage'] ?? '';
+              final lastMessage = chat['lastMessage'] ?? 'Hình ảnh';
               final roomId = chat['userId'] + '_admin';
 
               return ListTile(

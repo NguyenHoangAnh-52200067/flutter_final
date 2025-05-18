@@ -47,6 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final _isAdmin = _user?.email == 'admin@gmail.com';
     return SafeArea(
       child: Scaffold(
         body: SingleChildScrollView(
@@ -129,20 +130,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            final user = FirebaseAuth.instance.currentUser!;
-            final roomId = '${user.uid}_admin';
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ChatScreen(roomId: roomId),
-              ),
-            );
-          },
-          child: Icon(Icons.chat),
-        ),
+        floatingActionButton:
+            !_isAdmin
+                ? FloatingActionButton(
+                  onPressed: () async {
+                    User? currentUser = FirebaseAuth.instance.currentUser;
+
+                    if (currentUser == null) {
+                      print("vô rồi");
+                      UserCredential userCredential =
+                          await FirebaseAuth.instance.signInAnonymously();
+                      print("sao kì z");
+                      currentUser = userCredential.user;
+                      print("userid: " + currentUser!.uid);
+                    }
+
+                    final roomId = '${currentUser?.uid}_admin';
+                    print(roomId);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatScreen(roomId: roomId),
+                      ),
+                    );
+                  },
+                  child: Icon(Icons.chat),
+                )
+                : null,
       ),
     );
   }

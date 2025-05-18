@@ -592,7 +592,7 @@ import 'package:ecommerce_app/utils/image_upload.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:animate_do/animate_do.dart'; // Thêm thư viện animate_do
+import 'package:animate_do/animate_do.dart';
 
 class AddProductScreen extends StatefulWidget {
   @override
@@ -610,7 +610,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _costPriceController = TextEditingController();
   final ProductRepository _productRepo = ProductRepository();
   final CategoryRepository _categoryRepo = CategoryRepository();
-  final ImageUploadService _imageUploadService = ImageUploadService.getInstance();
+  final ImageUploadService _imageUploadService =
+      ImageUploadService.getInstance();
   String? _selectedCategory;
   List<CategoryModel> _categories = [];
   List<File> _selectedImages = [];
@@ -634,9 +635,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Future<void> _pickImages() async {
     final List<XFile>? pickedFiles = await ImagePicker().pickMultiImage();
     if (pickedFiles == null) return;
-    List<File> newImages = pickedFiles.map((pickedFile) => File(pickedFile.path)).toList();
+    List<File> newImages =
+        pickedFiles.map((pickedFile) => File(pickedFile.path)).toList();
     _listImg = await Future.wait(
-      newImages.map((image) async => await _imageUploadService.uploadImage(image)),
+      newImages.map(
+        (image) async => await _imageUploadService.uploadImage(image),
+      ),
     );
     setState(() {
       _selectedImages.addAll(newImages);
@@ -708,13 +712,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
       }
       int lastDotIndex = cleanPrice.lastIndexOf(".");
       if (lastDotIndex != -1) {
-        String beforeDot = cleanPrice.substring(0, lastDotIndex).replaceAll('.', '');
+        String beforeDot = cleanPrice
+            .substring(0, lastDotIndex)
+            .replaceAll('.', '');
         String afterDot = cleanPrice.substring(lastDotIndex);
         cleanPrice = beforeDot + afterDot;
       }
       int lastDotIndexCost = cleanCostPrice.lastIndexOf(".");
       if (lastDotIndexCost != -1) {
-        String beforeDot = cleanCostPrice.substring(0, lastDotIndex).replaceAll('.', '');
+        String beforeDot = cleanCostPrice
+            .substring(0, lastDotIndex)
+            .replaceAll('.', '');
         String afterDot = cleanCostPrice.substring(lastDotIndex);
         cleanCostPrice = beforeDot + afterDot;
       }
@@ -724,7 +732,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       if (cleanCostPrice.isEmpty || cleanCostPrice == ".") {
         cleanCostPrice = "0";
       }
-      double priceAfterDiscount = discount > 0 ? price - (price * discount / 100) : 0.0;
+      double priceAfterDiscount =
+          discount > 0 ? price - (price * discount / 100) : 0.0;
       final product = ProductModel(
         productName: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
@@ -939,12 +948,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             child: TextFormField(
               controller: controller,
-              keyboardType: isDescription ? TextInputType.multiline : keyboardType,
+              keyboardType:
+                  isDescription ? TextInputType.multiline : keyboardType,
               textInputAction: TextInputAction.newline,
               minLines: minLines,
               maxLines: maxLines,
               decoration: InputDecoration(
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 border: InputBorder.none,
                 hintText: "Nhập $label",
                 hintStyle: TextStyle(color: Colors.grey[400]),
@@ -964,14 +977,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   String cleanValue = value.replaceAll(RegExp(r'[^\d]'), '');
                   if (cleanValue.isNotEmpty) {
                     final formatter = NumberFormat("#,###", "vi_VN");
-                    String formattedValue = "${formatter.format(int.parse(cleanValue))} VNĐ";
+                    String formattedValue =
+                        "${formatter.format(int.parse(cleanValue))} VNĐ";
                     int cursorPosition = controller.selection.baseOffset;
                     int offset = formattedValue.length - cleanValue.length - 4;
                     int newCursorPosition = cursorPosition + offset;
                     controller.value = TextEditingValue(
                       text: formattedValue,
                       selection: TextSelection.collapsed(
-                        offset: newCursorPosition.clamp(0, formattedValue.length - 4),
+                        offset: newCursorPosition.clamp(
+                          0,
+                          formattedValue.length - 4,
+                        ),
                       ),
                     );
                   } else {
@@ -985,7 +1002,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   int cursorPosition = controller.selection.baseOffset;
                   String oldText = controller.text;
                   List<String> lines = value.split("\n");
-                  lines.removeWhere((line) => line.trim() == "•" || line.trim().isEmpty);
+                  lines.removeWhere(
+                    (line) => line.trim() == "•" || line.trim().isEmpty,
+                  );
                   for (int i = 0; i < lines.length; i++) {
                     String trimmed = lines[i].trim();
                     if (!trimmed.startsWith("• ")) {
@@ -1004,7 +1023,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     controller.value = TextEditingValue(
                       text: newText,
                       selection: TextSelection.collapsed(
-                        offset: cursorPosition + (newText.length - oldText.length),
+                        offset:
+                            cursorPosition + (newText.length - oldText.length),
                       ),
                     );
                   }
@@ -1022,7 +1042,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 }
                 if (isDescription) {
                   List<String> lines =
-                      value.split("\n").where((line) => line.trim().isNotEmpty).toList();
+                      value
+                          .split("\n")
+                          .where((line) => line.trim().isNotEmpty)
+                          .toList();
                   if (lines.length < 5) {
                     return "Vui lòng nhập ít nhất 5 mô tả";
                   }
@@ -1065,14 +1088,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
               icon: Icon(Icons.arrow_drop_down, color: Color(0xFF2196F3)),
               dropdownColor: Colors.white,
               style: TextStyle(fontSize: 16, color: Colors.black87),
-              items: _categories
-                  .map(
-                    (category) => DropdownMenuItem(
-                      value: category.id,
-                      child: Text(category.name),
-                    ),
-                  )
-                  .toList(),
+              items:
+                  _categories
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category.id,
+                          child: Text(category.name),
+                        ),
+                      )
+                      .toList(),
               onChanged: (value) {
                 setState(() {
                   _selectedCategory = value;
@@ -1084,7 +1108,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 hintText: "Chọn danh mục",
                 hintStyle: TextStyle(color: Colors.grey[400]),
               ),
-              validator: (value) => value == null ? "Vui lòng chọn danh mục" : null,
+              validator:
+                  (value) => value == null ? "Vui lòng chọn danh mục" : null,
             ),
           ),
           SizedBox(height: 12),
@@ -1133,49 +1158,49 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
             ),
             ..._selectedImages.asMap().entries.map(
-                  (entry) => FadeInRight(
-                    duration: Duration(milliseconds: 500 + entry.key * 100),
-                    child: Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            entry.value,
-                            width: 90,
-                            height: 90,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _removeImage(entry.value),
-                          child: ElasticIn(
-                            duration: Duration(milliseconds: 300),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.red,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.red.withOpacity(0.3),
-                                    blurRadius: 6,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              padding: const EdgeInsets.all(6),
-                              child: Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+              (entry) => FadeInRight(
+                duration: Duration(milliseconds: 500 + entry.key * 100),
+                child: Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        entry.value,
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  ),
+                    GestureDetector(
+                      onTap: () => _removeImage(entry.value),
+                      child: ElasticIn(
+                        duration: Duration(milliseconds: 300),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.red,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withOpacity(0.3),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+            ),
           ],
         ),
       ],
@@ -1205,9 +1230,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isPrimary
-                ? [Color(0xFF2196F3), Color(0xFF1976D2)]
-                : [Color(0xFF42A5F5), Color(0xFF1976D2)],
+            colors:
+                isPrimary
+                    ? [Color(0xFF2196F3), Color(0xFF1976D2)]
+                    : [Color(0xFF42A5F5), Color(0xFF1976D2)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -1226,11 +1252,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           children: [
             ElasticIn(
               duration: Duration(milliseconds: 300),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: isPrimary ? 28 : 24,
-              ),
+              child: Icon(icon, color: Colors.white, size: isPrimary ? 28 : 24),
             ),
             SizedBox(width: 8),
             Text(
