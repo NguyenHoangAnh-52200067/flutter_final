@@ -12,15 +12,14 @@ class ImageUtils {
       return Icon(Icons.folder, size: width, color: Colors.grey);
     }
 
-    if (kIsWeb) {
-      return Icon(Icons.image_not_supported, size: width, color: Colors.grey);
-    }
-
     return Image.network(
       imagePath,
       width: width,
       height: height,
       fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(Icons.broken_image, size: width, color: Colors.grey);
+      },
     );
   }
 }
