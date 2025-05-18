@@ -61,13 +61,17 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   }
 
   void _editProduct(ProductModel product) async {
-    await Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => EditProductScreen(product: product),
       ),
     );
-    _loadProducts();
+
+    if (result == true) {
+      // Reload all products if update was successful
+      _loadProducts();
+    }
   }
 
   @override

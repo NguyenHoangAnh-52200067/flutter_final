@@ -109,13 +109,17 @@ class _EditProductScreenState extends State<EditProductScreen> {
       }
 
       // Improved parsing for price and costPrice
-      String priceText =
-          _priceController.text.replaceAll('₫', '').replaceAll('.', '').trim();
-      String costPriceText =
-          _costPriceController.text
-              .replaceAll('₫', '')
-              .replaceAll('.', '')
-              .trim();
+      String priceText = _priceController.text;
+      String costPriceText = _costPriceController.text;
+
+      // Remove currency symbol and formatting
+      priceText = priceText.replaceAll('VNĐ', '').replaceAll('.', '').trim();
+      costPriceText =
+          costPriceText.replaceAll('VNĐ', '').replaceAll('.', '').trim();
+
+      // Handle any other non-numeric characters
+      priceText = priceText.replaceAll(RegExp(r'[^\d]'), '');
+      costPriceText = costPriceText.replaceAll(RegExp(r'[^\d]'), '');
 
       double price = double.tryParse(priceText) ?? 0.0;
       double costPrice = double.tryParse(costPriceText) ?? 0.0;
@@ -133,10 +137,29 @@ class _EditProductScreenState extends State<EditProductScreen> {
         images: _images,
       );
 
-      await _productRepo.updateProduct(updatedProduct);
+      try {
+        await _productRepo.updateProduct(updatedProduct);
 
-      if (mounted) {
-        Navigator.pop(context);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Cập nhật sản phẩm thành công"),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Return true to indicate successful update
+          Navigator.pop(context, true);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Lỗi cập nhật sản phẩm: $e"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -178,6 +201,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   "Giá gốc sản phẩm",
                   _costPriceController,
                   keyboardType: TextInputType.number,
+                  isPrice: true,
                 ),
                 _buildLabeledTextField(
                   "Giá bán sản phẩm",
