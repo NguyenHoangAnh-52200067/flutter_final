@@ -368,7 +368,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ],
               ),
             ),
-
+            _buildDrawerItem(Icons.home, "Trang chủ", () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+            }),
             _buildDrawerItem(Icons.person, "Quản lý người dùng", () {
               Navigator.of(context).push(
                 MaterialPageRoute(
