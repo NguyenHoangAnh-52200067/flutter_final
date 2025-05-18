@@ -1,13 +1,13 @@
 import 'package:ecommerce_app/home.dart';
 import 'package:ecommerce_app/screens/admin/admin_order_management_screen.dart';
 import 'package:ecommerce_app/screens/admin/admin_user_management_screen.dart';
+import 'package:ecommerce_app/screens/admin/widgets/admin_chats.dart';
 import 'package:ecommerce_app/screens/admin/widgets/advanced_dashboard.dart';
 import 'package:ecommerce_app/screens/category/category_manage_screen.dart';
 import 'package:ecommerce_app/screens/product/product_manage_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// SCREEN
 
 import 'admin_voucher_management_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,7 +28,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   int newUsers = 0;
   int totalOrders = 0;
   double totalRevenue = 0;
-  double totalProfit = 0; // Add this variable
+  double totalProfit = 0;
   List<Map<String, dynamic>> bestSellingProducts = [];
 
   @override
@@ -400,6 +400,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 );
               },
             ),
+            _buildDrawerItem(Icons.person, "Hỗ trợ khách hàng", () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => AdminInboxScreen()),
+              );
+            }),
             const Spacer(),
             _buildLogoutItem(),
           ],
