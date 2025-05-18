@@ -506,7 +506,8 @@ class SignUpScreen extends StatefulWidget {
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMixin {
+class _SignUpScreenState extends State<SignUpScreen>
+    with TickerProviderStateMixin {
   final FirebaseAuthService _auth = FirebaseAuthService();
   final UserRepository _userRepo = UserRepository();
   final _emailController = TextEditingController();
@@ -646,12 +647,14 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
         if (mounted) {
           setState(() {
             city = addressParts.length > 2 ? addressParts.last.trim() : '';
-            district = addressParts.length > 1
-                ? addressParts[addressParts.length - 2].trim()
-                : '';
-            ward = addressParts.isNotEmpty
-                ? addressParts[addressParts.length - 3].trim()
-                : '';
+            district =
+                addressParts.length > 1
+                    ? addressParts[addressParts.length - 2].trim()
+                    : '';
+            ward =
+                addressParts.isNotEmpty
+                    ? addressParts[addressParts.length - 3].trim()
+                    : '';
             street = addressParts.isNotEmpty ? addressParts[1].trim() : '';
             local = localAddress;
           });
@@ -696,12 +699,15 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
       }
     } catch (e) {
       print("Lỗi tại vì: $e");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Đăng ký thất bại: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Đăng ký thất bại: $e")));
     }
 
-    if (mounted) setState(() {
-      _isSigningUp = false;
-    });
+    if (mounted)
+      setState(() {
+        _isSigningUp = false;
+      });
   }
 
   @override
@@ -712,7 +718,8 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView( // Đảm bảo toàn bộ nội dung có thể cuộn
+        child: SingleChildScrollView(
+          // Đảm bảo toàn bộ nội dung có thể cuộn
           child: Container(
             height: height,
             child: Stack(
@@ -817,7 +824,8 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                             ],
                           ),
                           const SizedBox(height: 20),
-                          Expanded( // Thêm Expanded để giới hạn chiều cao và cho phép cuộn
+                          Expanded(
+                            // Thêm Expanded để giới hạn chiều cao và cho phép cuộn
                             child: SingleChildScrollView(
                               child: Form(
                                 key: _formKey,
@@ -833,7 +841,9 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                         final RegExp emailRegExp = RegExp(
                                           r'^[^@]+@[^@]+\.[^@]+$',
                                         );
-                                        if (!emailRegExp.hasMatch(value ?? '')) {
+                                        if (!emailRegExp.hasMatch(
+                                          value ?? '',
+                                        )) {
                                           _email.requestFocus();
                                           return 'Email không hợp lệ';
                                         }
@@ -846,7 +856,8 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                       icon: Icons.person,
                                       textInputAction: TextInputAction.next,
                                       validator: (value) {
-                                        if (value == null || value.trim().isEmpty) {
+                                        if (value == null ||
+                                            value.trim().isEmpty) {
                                           return 'Vui lòng nhập họ tên';
                                         } else if (value.trim().length < 2) {
                                           return 'Họ tên quá ngắn';
@@ -855,7 +866,9 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                       },
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24.0,
+                                      ),
                                       child: TextField(
                                         controller: addressController,
                                         keyboardType: TextInputType.text,
@@ -863,14 +876,26 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                           filled: true,
                                           fillColor: Colors.white,
                                           hintText: 'Địa chỉ',
-                                          prefixIcon: Icon(Icons.location_on, color: Colors.blueAccent),
+                                          prefixIcon: Icon(
+                                            Icons.location_on,
+                                            color: Colors.blueAccent,
+                                          ),
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12.0),
-                                            borderSide: BorderSide(color: Colors.blue),
+                                            borderRadius: BorderRadius.circular(
+                                              12.0,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.blue,
+                                            ),
                                           ),
                                           focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12.0),
-                                            borderSide: BorderSide(color: Colors.blueAccent, width: 2),
+                                            borderRadius: BorderRadius.circular(
+                                              12.0,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.blueAccent,
+                                              width: 2,
+                                            ),
                                           ),
                                         ),
                                         onChanged: _onSearchChanged,
@@ -879,9 +904,11 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                     AnimatedBuilder(
                                       animation: _suggestionController,
                                       builder: (context, child) {
-                                        if (_suggestions.isEmpty) return const SizedBox.shrink();
+                                        if (_suggestions.isEmpty)
+                                          return const SizedBox.shrink();
                                         return Positioned(
-                                          top: 400, // Điều chỉnh vị trí động dựa trên chiều cao nội dung
+                                          top:
+                                              400, // Điều chỉnh vị trí động dựa trên chiều cao nội dung
                                           left: 24,
                                           right: 24,
                                           child: ScaleTransition(
@@ -889,29 +916,45 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                             child: Card(
                                               elevation: 8,
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
                                               child: Container(
-                                                constraints: BoxConstraints(maxHeight: 200),
+                                                constraints: BoxConstraints(
+                                                  maxHeight: 200,
+                                                ),
                                                 child: ListView.builder(
                                                   shrinkWrap: true,
-                                                  itemCount: _suggestions.length,
-                                                  itemBuilder: (context, index) {
-                                                    final suggestion = _suggestions[index];
+                                                  itemCount:
+                                                      _suggestions.length,
+                                                  itemBuilder: (
+                                                    context,
+                                                    index,
+                                                  ) {
+                                                    final suggestion =
+                                                        _suggestions[index];
                                                     return ListTile(
                                                       title: Text(
                                                         suggestion['description'],
-                                                        style: TextStyle(color: Colors.black87),
+                                                        style: TextStyle(
+                                                          color: Colors.black87,
+                                                        ),
                                                       ),
                                                       onTap: () {
-                                                        addressController.text = suggestion['description'];
-                                                        fetchAddressDetails(suggestion['place_id']);
+                                                        addressController.text =
+                                                            suggestion['description'];
+                                                        fetchAddressDetails(
+                                                          suggestion['place_id'],
+                                                        );
                                                         setState(() {
                                                           _suggestions = [];
                                                         });
                                                       },
                                                       shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(8),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
                                                       ),
                                                     );
                                                   },
@@ -929,7 +972,9 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                       keyboardType: TextInputType.phone,
                                       textInputAction: TextInputAction.next,
                                       validator: (String? value) {
-                                        if (value == null || value.length < 10 || value.length > 12) {
+                                        if (value == null ||
+                                            value.length < 10 ||
+                                            value.length > 12) {
                                           _password.requestFocus();
                                           return "Số điện thoại phải từ 10-12 số";
                                         }
@@ -945,12 +990,15 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                       isPassword: true,
                                       suffixIcon: IconButton(
                                         icon: Icon(
-                                          _obscureTextPassword ? Icons.visibility : Icons.visibility_off,
+                                          _obscureTextPassword
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
                                           color: Colors.blueAccent,
                                         ),
                                         onPressed: () {
                                           setState(() {
-                                            _obscureTextPassword = !_obscureTextPassword;
+                                            _obscureTextPassword =
+                                                !_obscureTextPassword;
                                           });
                                         },
                                       ),
@@ -971,12 +1019,15 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                       isPassword: true,
                                       suffixIcon: IconButton(
                                         icon: Icon(
-                                          _obscureTextCFPassword ? Icons.visibility : Icons.visibility_off,
+                                          _obscureTextCFPassword
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
                                           color: Colors.blueAccent,
                                         ),
                                         onPressed: () {
                                           setState(() {
-                                            _obscureTextCFPassword = !_obscureTextCFPassword;
+                                            _obscureTextCFPassword =
+                                                !_obscureTextCFPassword;
                                           });
                                         },
                                       ),
@@ -984,7 +1035,8 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                         if (value == null || value.length < 6) {
                                           _cfpassword.requestFocus();
                                           return "Mật khẩu phải có ít nhất 6 ký tự";
-                                        } else if (value != _passwordController.text) {
+                                        } else if (value !=
+                                            _passwordController.text) {
                                           _cfpassword.requestFocus();
                                           return "Mật khẩu không khớp";
                                         }
@@ -994,11 +1046,15 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                                     const SizedBox(height: 10),
                                     AnimatedOpacity(
                                       opacity: _isSigningUp ? 0.6 : 1.0,
-                                      duration: const Duration(milliseconds: 500),
+                                      duration: const Duration(
+                                        milliseconds: 500,
+                                      ),
                                       child: CustomButton(
                                         text: 'Đăng ký',
+                                        textColor: Colors.white,
                                         onPressed: () {
-                                          if (_formKey.currentState!.validate()) {
+                                          if (_formKey.currentState!
+                                              .validate()) {
                                             _signUpScreen();
                                           }
                                         },

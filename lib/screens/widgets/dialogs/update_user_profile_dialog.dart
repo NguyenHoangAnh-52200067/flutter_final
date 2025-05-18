@@ -45,7 +45,6 @@ class _UpdateUserProfileDialogState extends State<UpdateUserProfileDialog> {
   final _imageUploadService = ImageUploadService.getInstance();
 
   String? _linkImage;
-  File? _selectedImage;
   bool _isLoading = false;
 
   @override
@@ -71,7 +70,6 @@ class _UpdateUserProfileDialogState extends State<UpdateUserProfileDialog> {
       File(pickedFile.path),
     );
     setState(() {
-      _selectedImage = File(pickedFile.path);
       _linkImage = linkImage;
     });
   }

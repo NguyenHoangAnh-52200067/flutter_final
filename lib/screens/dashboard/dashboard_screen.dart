@@ -60,14 +60,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 15),
                     // Search Bar
                     SearchContainer(text: 'Tìm kiếm trong cửa hàng'),
-                    const SizedBox(height: 15),
+                    SizedBox(height: 12),
                     // Categories
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 8),
                       child: Column(
                         children: [
                           SectionHeading1(
                             title: 'Danh mục phổ biến',
+                            textColor: Colors.white,
                             showActionButton: false,
                           ),
                           // Categories

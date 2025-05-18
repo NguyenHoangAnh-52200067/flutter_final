@@ -521,7 +521,8 @@ class AdminHomeScreen extends StatefulWidget {
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
 }
 
-class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProviderStateMixin {
+class _AdminHomeScreenState extends State<AdminHomeScreen>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isProductExpanded = false;
 
@@ -550,7 +551,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0.0, 0.1), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.1),
+      end: Offset.zero,
+    ).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _animationController.forward();
@@ -563,19 +567,22 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
   }
 
   Future<void> _loadDashboardData() async {
-    final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
+    final usersSnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
     final now = DateTime.now();
     final lastMonth = now.subtract(const Duration(days: 30));
 
-    final newUsersSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .where('createdAt', isGreaterThan: lastMonth)
-        .get();
+    final newUsersSnapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .where('createdAt', isGreaterThan: lastMonth)
+            .get();
 
-    final ordersSnapshot = await FirebaseFirestore.instance
-        .collection('orders')
-        .where('status', isEqualTo: 'Đã giao')
-        .get();
+    final ordersSnapshot =
+        await FirebaseFirestore.instance
+            .collection('orders')
+            .where('status', isEqualTo: 'Đã giao')
+            .get();
 
     final productsMap = <String, int>{};
     double calculatedRevenue = 0;
@@ -599,15 +606,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
     }
     print('Tổng thu nhập: $calculatedRevenue');
     print('Lợi nhuận: $calculatedProfit ');
-    final sortedEntries = productsMap.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sortedEntries =
+        productsMap.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
 
     final topProducts = await Future.wait(
       sortedEntries.take(5).map((entry) async {
-        final productDoc = await FirebaseFirestore.instance
-            .collection('products')
-            .doc(entry.key)
-            .get();
+        final productDoc =
+            await FirebaseFirestore.instance
+                .collection('products')
+                .doc(entry.key)
+                .get();
         return {
           'name': productDoc.data()?['productName'] ?? 'Unknown',
           'quantity': entry.value,
@@ -793,12 +802,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: bestSellingProducts.isEmpty
-                      ? 100
-                      : (bestSellingProducts
-                              .map((p) => p['quantity'] as int)
-                              .reduce((a, b) => a > b ? a : b) *
-                          1.2),
+                  maxY:
+                      bestSellingProducts.isEmpty
+                          ? 100
+                          : (bestSellingProducts
+                                  .map((p) => p['quantity'] as int)
+                                  .reduce((a, b) => a > b ? a : b) *
+                              1.2),
                   titlesData: FlTitlesData(
                     show: true,
                     bottomTitles: AxisTitles(
@@ -817,14 +827,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
                                   .take(2)
                                   .join('\n'),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 12, color: Colors.black54),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
                             ),
                           );
                         },
                       ),
                     ),
                     leftTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: true, reservedSize: 30),
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 30,
+                      ),
                     ),
                     topTitles: AxisTitles(
                       sideTitles: SideTitles(showTitles: false),
@@ -834,23 +850,24 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
                     ),
                   ),
                   borderData: FlBorderData(show: false),
-                  barGroups: bestSellingProducts
-                      .asMap()
-                      .entries
-                      .map(
-                        (entry) => BarChartGroupData(
-                          x: entry.key,
-                          barRods: [
-                            BarChartRodData(
-                              toY: entry.value['quantity'].toDouble(),
-                              color: Colors.blue,
-                              width: 20,
-                              borderRadius: BorderRadius.circular(4),
+                  barGroups:
+                      bestSellingProducts
+                          .asMap()
+                          .entries
+                          .map(
+                            (entry) => BarChartGroupData(
+                              x: entry.key,
+                              barRods: [
+                                BarChartRodData(
+                                  toY: entry.value['quantity'].toDouble(),
+                                  color: Colors.blue,
+                                  width: 20,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      )
-                      .toList(),
+                          )
+                          .toList(),
                 ),
               ),
             ),
@@ -906,10 +923,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
               },
               children: [
                 _buildSubItem("Danh mục", Icons.list, () {
-                  Navigator.of(context).push(_createRoute(const CategoryManagementScreen()));
+                  Navigator.of(
+                    context,
+                  ).push(_createRoute(const CategoryManagementScreen()));
                 }),
                 _buildSubItem("Sản phẩm", Icons.shopping_bag, () {
-                  Navigator.of(context).push(_createRoute(const ProductManagementScreen()));
+                  Navigator.of(
+                    context,
+                  ).push(_createRoute(const ProductManagementScreen()));
                 }),
               ],
             ),
@@ -977,7 +998,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
               borderRadius: BorderRadius.circular(8),
             ),
             leading: Icon(icon, color: Colors.blue),
-            title: Text(label, style: const TextStyle(fontSize: 16, color: Colors.black54)),
+            title: Text(
+              label,
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
+            ),
             trailing: Icon(
               isExpanded ? Icons.expand_less : Icons.expand_more,
               color: Colors.blue,
@@ -1015,7 +1039,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         leading: const Icon(Icons.logout, color: Colors.red),
-        title: const Text("Đăng xuất", style: TextStyle(fontSize: 16, color: Colors.black54)),
+        title: const Text(
+          "Đăng xuất",
+          style: TextStyle(fontSize: 16, color: Colors.black54),
+        ),
         onTap: () async {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.clear();

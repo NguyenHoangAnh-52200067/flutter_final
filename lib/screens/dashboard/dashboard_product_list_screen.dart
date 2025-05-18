@@ -159,7 +159,8 @@ class ProductListView extends StatefulWidget {
   State<ProductListView> createState() => _ProductListViewState();
 }
 
-class _ProductListViewState extends State<ProductListView> with SingleTickerProviderStateMixin {
+class _ProductListViewState extends State<ProductListView>
+    with SingleTickerProviderStateMixin {
   final ProductRepository _productRepo = ProductRepository();
   final List<ProductModel> _products = [];
   bool _isLoading = false;
@@ -222,7 +223,8 @@ class _ProductListViewState extends State<ProductListView> with SingleTickerProv
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        itemCount: _products.isNotEmpty ? _products.length + (_hasMore ? 1 : 0) : 6,
+        itemCount:
+            _products.isNotEmpty ? _products.length + (_hasMore ? 1 : 0) : 6,
         itemBuilder: (context, index) {
           if (_products.isEmpty) {
             return _buildShimmerCard();
@@ -261,7 +263,9 @@ class _ProductListViewState extends State<ProductListView> with SingleTickerProv
               decoration: BoxDecoration(
                 color: Colors.white, // Nền trắng
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.blue.shade300), // Viền xanh nhạt
+                border: Border.all(
+                  color: Colors.blue.shade300,
+                ), // Viền xanh nhạt
               ),
             ),
             const SizedBox(height: 15),

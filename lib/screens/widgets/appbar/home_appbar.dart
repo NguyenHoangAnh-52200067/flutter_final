@@ -46,7 +46,7 @@ class HomeAppBar extends StatelessWidget {
             );
           },
           icon: const Icon(Icons.shopping_cart_outlined),
-          color: Colors.white, // Biểu tượng trắng
+          color: Colors.white,
         ),
       ],
     );

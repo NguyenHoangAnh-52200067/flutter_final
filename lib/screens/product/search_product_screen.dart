@@ -591,7 +591,8 @@ class SearchProductScreen extends StatefulWidget {
   State<SearchProductScreen> createState() => _SearchProductScreenState();
 }
 
-class _SearchProductScreenState extends State<SearchProductScreen> with SingleTickerProviderStateMixin {
+class _SearchProductScreenState extends State<SearchProductScreen>
+    with SingleTickerProviderStateMixin {
   final ProductRepository _productRepo = ProductRepository();
   final CategoryRepository _categoryRepo = CategoryRepository();
   final TextEditingController _searchController = TextEditingController();
@@ -649,11 +650,12 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
 
   void _updateBrands(List<ProductModel> products) {
     setState(() {
-      _brands = products
-          .map((p) => p.brand)
-          .where((brand) => brand.isNotEmpty)
-          .toSet()
-          .toList();
+      _brands =
+          products
+              .map((p) => p.brand)
+              .where((brand) => brand.isNotEmpty)
+              .toSet()
+              .toList();
     });
   }
 
@@ -670,16 +672,17 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
 
     try {
       final products = await _productRepo.getAllProducts();
-      final filteredProducts = products.where((product) {
-        final name = product.productName.toLowerCase();
-        final description = product.description.toLowerCase();
-        final brand = product.brand.toLowerCase();
-        final searchQuery = query.toLowerCase();
+      final filteredProducts =
+          products.where((product) {
+            final name = product.productName.toLowerCase();
+            final description = product.description.toLowerCase();
+            final brand = product.brand.toLowerCase();
+            final searchQuery = query.toLowerCase();
 
-        return name.contains(searchQuery) ||
-            description.contains(searchQuery) ||
-            brand.contains(searchQuery);
-      }).toList();
+            return name.contains(searchQuery) ||
+                description.contains(searchQuery) ||
+                brand.contains(searchQuery);
+          }).toList();
 
       setState(() {
         _searchResults = filteredProducts;
@@ -717,16 +720,21 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue, // Tiêu đề màu xanh
+                          color: Colors.black, // Tiêu đề màu xanh
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.blue), // Biểu tượng màu xanh
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.black87,
+                        ), // Biểu tượng màu xanh
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
-                  Divider(color: Colors.blue.shade100), // Đường phân cách màu xanh nhạt
+                  Divider(
+                    color: Colors.blue.shade100,
+                  ), // Đường phân cách màu xanh nhạt
                   Expanded(
                     child: ListView(
                       children: [
@@ -736,7 +744,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue, // Tiêu đề màu xanh
+                            color: Colors.black, // Tiêu đề màu xanh
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -744,23 +752,37 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                           value: _selectedBrand,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.blue), // Viền xanh
+                              borderSide: BorderSide(
+                                color: Colors.blue,
+                              ), // Viền xanh
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.blue.shade300),
+                              borderSide: BorderSide(color: Colors.black54),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.blue, width: 2),
+                              borderSide: BorderSide(
+                                color: Colors.black26,
+                                width: 2,
+                              ),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                            ),
                           ),
-                          hint: const Text('Chọn thương hiệu', style: TextStyle(color: Colors.blue)),
-                          items: _brands.map((brand) {
-                            return DropdownMenuItem(
-                              value: brand,
-                              child: Text(brand, style: const TextStyle(color: Colors.blue)),
-                            );
-                          }).toList(),
+                          hint: const Text(
+                            'Chọn thương hiệu',
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                          items:
+                              _brands.map((brand) {
+                                return DropdownMenuItem(
+                                  value: brand,
+                                  child: Text(
+                                    brand,
+                                    style: const TextStyle(color: Colors.black),
+                                  ),
+                                );
+                              }).toList(),
                           onChanged: (value) {
                             setState(() => _selectedBrand = value);
                           },
@@ -773,7 +795,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue, // Tiêu đề màu xanh
+                            color: Colors.black, // Tiêu đề màu xanh
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -785,17 +807,26 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue),
+                                    borderSide: BorderSide(
+                                      color: Colors.black54,
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue.shade300),
+                                    borderSide: BorderSide(
+                                      color: Colors.black54,
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                                    borderSide: BorderSide(
+                                      color: Colors.black54,
+                                      width: 2,
+                                    ),
                                   ),
                                   hintText: 'Giá từ',
-                                  hintStyle: TextStyle(color: Colors.blue.shade700),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                                  hintStyle: TextStyle(color: Colors.black54),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
                                 ),
                               ),
                             ),
@@ -806,17 +837,22 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue),
+                                    borderSide: BorderSide(color: Colors.black),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue.shade300),
+                                    borderSide: BorderSide(color: Colors.black),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                                    borderSide: BorderSide(
+                                      color: Colors.black,
+                                      width: 2,
+                                    ),
                                   ),
                                   hintText: 'Đến',
-                                  hintStyle: TextStyle(color: Colors.blue.shade700),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                                  hintStyle: TextStyle(color: Colors.black),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
                                 ),
                               ),
                             ),
@@ -830,7 +866,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue, // Tiêu đề màu xanh
+                            color: Colors.black,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -838,23 +874,35 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                           value: _selectedCategory,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.blue),
+                              borderSide: BorderSide(color: Colors.black),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.blue.shade300),
+                              borderSide: BorderSide(color: Colors.black),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.blue, width: 2),
+                              borderSide: BorderSide(
+                                color: Colors.black,
+                                width: 2,
+                              ),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                            ),
                           ),
-                          hint: const Text('Chọn danh mục', style: TextStyle(color: Colors.blue)),
-                          items: _categories.map((category) {
-                            return DropdownMenuItem(
-                              value: category,
-                              child: Text(category, style: const TextStyle(color: Colors.blue)),
-                            );
-                          }).toList(),
+                          hint: const Text(
+                            'Chọn danh mục',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          items:
+                              _categories.map((category) {
+                                return DropdownMenuItem(
+                                  value: category,
+                                  child: Text(
+                                    category,
+                                    style: const TextStyle(color: Colors.black),
+                                  ),
+                                );
+                              }).toList(),
                           onChanged: (value) {
                             setState(() => _selectedCategory = value);
                           },
@@ -867,7 +915,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue, // Tiêu đề màu xanh
+                            color: Colors.black, // Tiêu đề màu xanh
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -886,7 +934,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                         Text(
                           'Từ ${_selectedRating.toInt()} sao trở lên',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.blue),
+                          style: const TextStyle(color: Colors.black),
                         ),
                       ],
                     ),
@@ -907,13 +955,17 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white, // Nền trắng
-                            foregroundColor: Colors.blue, // Văn bản và viền xanh
+                            foregroundColor:
+                                Colors.blue, // Văn bản và viền xanh
                             side: BorderSide(color: Colors.blue), // Viền xanh
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('Đặt lại', style: TextStyle(color: Colors.blue)),
+                          child: const Text(
+                            'Đặt lại',
+                            style: TextStyle(color: Colors.blue),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -931,7 +983,9 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                           ),
                           child: const Text(
                             'Áp dụng',
-                            style: TextStyle(color: Colors.white), // Văn bản trắng
+                            style: TextStyle(
+                              color: Colors.white,
+                            ), // Văn bản trắng
                           ),
                         ),
                       ),
@@ -948,7 +1002,8 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
 
   void _applyFilters() {
     setState(() {
-      bool noFiltersApplied = _selectedBrand == null &&
+      bool noFiltersApplied =
+          _selectedBrand == null &&
           _minPriceController.text.isEmpty &&
           _maxPriceController.text.isEmpty &&
           _selectedCategory == null &&
@@ -959,32 +1014,35 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
         return;
       }
 
-      _filteredResults = _searchResults.where((product) {
-        if (_selectedBrand != null &&
-            product.brand.toLowerCase() != _selectedBrand!.toLowerCase()) {
-          return false;
-        }
+      _filteredResults =
+          _searchResults.where((product) {
+            if (_selectedBrand != null &&
+                product.brand.toLowerCase() != _selectedBrand!.toLowerCase()) {
+              return false;
+            }
 
-        if (_minPriceController.text.isNotEmpty ||
-            _maxPriceController.text.isNotEmpty) {
-          final minPrice = double.tryParse(_minPriceController.text) ?? 0;
-          final maxPrice = double.tryParse(_maxPriceController.text) ?? double.infinity;
-          if (product.price < minPrice || product.price > maxPrice) {
-            return false;
-          }
-        }
+            if (_minPriceController.text.isNotEmpty ||
+                _maxPriceController.text.isNotEmpty) {
+              final minPrice = double.tryParse(_minPriceController.text) ?? 0;
+              final maxPrice =
+                  double.tryParse(_maxPriceController.text) ?? double.infinity;
+              if (product.price < minPrice || product.price > maxPrice) {
+                return false;
+              }
+            }
 
-        if (_selectedCategory != null &&
-            product.categoryId.toLowerCase() != _selectedCategory!.toLowerCase()) {
-          return false;
-        }
+            if (_selectedCategory != null &&
+                product.categoryId.toLowerCase() !=
+                    _selectedCategory!.toLowerCase()) {
+              return false;
+            }
 
-        if (_selectedRating > 0 && product.rating < _selectedRating) {
-          return false;
-        }
+            if (_selectedRating > 0 && product.rating < _selectedRating) {
+              return false;
+            }
 
-        return true;
-      }).toList();
+            return true;
+          }).toList();
     });
   }
 
@@ -1039,7 +1097,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
       label: Text(
         label,
         style: TextStyle(
-          color: isSelected ? Colors.white : Colors.blue, // Văn bản trắng khi chọn, xanh khi không chọn
+          color: isSelected ? Colors.white : Colors.black,
           fontSize: 12,
         ),
       ),
@@ -1050,10 +1108,12 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
           _sortProducts();
         });
       },
-      backgroundColor: Colors.white, // Nền trắng
-      selectedColor: Colors.blue, // Nền xanh khi chọn
-      checkmarkColor: Colors.white, // Dấu kiểm trắng
-      side: BorderSide(color: Colors.blue.shade300), // Viền xanh nhạt
+      backgroundColor: Colors.white,
+      selectedColor: Colors.blue,
+      checkmarkColor: Colors.white,
+      side: BorderSide(
+        color: isSelected ? Colors.blue.shade400 : Colors.black26,
+      ),
     );
   }
 
@@ -1084,8 +1144,13 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                       autofocus: true,
                       decoration: InputDecoration(
                         hintText: 'Nhập từ khóa tìm kiếm...',
-                        hintStyle: TextStyle(color: Colors.blue.shade700), // Gợi ý màu xanh đậm
-                        prefixIcon: const Icon(Icons.search, color: Colors.blue), // Biểu tượng xanh
+                        hintStyle: TextStyle(
+                          color: Colors.black26,
+                        ), // Gợi ý màu xanh đậm
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.black38,
+                        ), // Biểu tượng xanh
                         filled: true,
                         fillColor: Colors.white, // Nền trắng
                         border: OutlineInputBorder(
@@ -1106,7 +1171,10 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.filter_list, color: Colors.blue), // Biểu tượng xanh
+                  icon: const Icon(
+                    Icons.filter_list,
+                    color: Colors.black,
+                  ), // Biểu tượng xanh
                   onPressed: _searchResults.isEmpty ? null : _showFilterDialog,
                 ),
               ],
@@ -1118,88 +1186,98 @@ class _SearchProductScreenState extends State<SearchProductScreen> with SingleTi
 
           // Phần hiển thị kết quả
           Expanded(
-            child: _isLoading
-                ? Center(child: CircularProgressIndicator(color: Colors.blue)) // Vòng xoay màu xanh
-                : _filteredResults.isEmpty
+            child:
+                _isLoading
+                    ? Center(
+                      child: CircularProgressIndicator(color: Colors.blue),
+                    ) // Vòng xoay màu xanh
+                    : _filteredResults.isEmpty
                     ? const Center(
-                        child: Text(
-                          'Không tìm thấy sản phẩm nào',
-                          style: TextStyle(color: Colors.blue), // Văn bản xanh
-                        ),
-                      )
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(8),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.7,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                        ),
-                        itemCount: _filteredResults.length,
-                        itemBuilder: (context, index) {
-                          final product = _filteredResults[index];
-                          return GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProductDetailScreen(product: product),
-                              ),
-                            ),
-                            child: Card(
-                              elevation: 3,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(color: Colors.blue.shade100), // Viền xanh nhạt
-                              ),
-                              color: Colors.white, // Nền trắng
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(10),
-                                      ),
-                                      child: Image.network(
-                                        product.images.isNotEmpty
-                                            ? product.images[0]
-                                            : 'placeholder_image_url',
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          product.productName,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue, // Tên sản phẩm màu xanh
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          Utils.formatCurrency(product.price),
-                                          style: const TextStyle(
-                                            color: Colors.blue, // Giá màu xanh
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+                      child: Text(
+                        'Không tìm thấy sản phẩm nào',
+                        style: TextStyle(color: Colors.blue), // Văn bản xanh
                       ),
+                    )
+                    : GridView.builder(
+                      padding: const EdgeInsets.all(8),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.7,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                          ),
+                      itemCount: _filteredResults.length,
+                      itemBuilder: (context, index) {
+                        final product = _filteredResults[index];
+                        return GestureDetector(
+                          onTap:
+                              () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) =>
+                                          ProductDetailScreen(product: product),
+                                ),
+                              ),
+                          child: Card(
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: BorderSide(
+                                color: Colors.blue.shade100,
+                              ), // Viền xanh nhạt
+                            ),
+                            color: Colors.white, // Nền trắng
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(10),
+                                    ),
+                                    child: Image.network(
+                                      product.images.isNotEmpty
+                                          ? product.images[0]
+                                          : 'placeholder_image_url',
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product.productName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.normal,
+                                          color: Colors.black,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        Utils.formatCurrency(product.price),
+                                        style: const TextStyle(
+                                          color: Colors.black, // Giá màu xanh
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
           ),
         ],
       ),
