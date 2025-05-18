@@ -53,17 +53,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              // Header
               HeaderContainer(
                 child: Column(
                   children: [
-                    // App Bar
                     HomeAppBar(fullName: _fullName),
                     const SizedBox(height: 15),
-                    // Search Bar
                     SearchContainer(text: 'Tìm kiếm trong cửa hàng'),
                     SizedBox(height: 12),
-                    // Categories
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
                       child: Column(
@@ -73,7 +69,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             textColor: Colors.white,
                             showActionButton: false,
                           ),
-                          // Categories
                           HomeCategories(categories: _categories),
                           VoucherWidget(),
                           SizedBox(height: 14),
@@ -85,7 +80,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
 
-              // Body
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
@@ -93,7 +87,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Banner
                     BannerWidget(),
                     ListView.builder(
                       shrinkWrap: true,
