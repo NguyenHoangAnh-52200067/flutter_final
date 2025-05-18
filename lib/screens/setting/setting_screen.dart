@@ -179,7 +179,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         context,
                       ).textTheme.headlineMedium!.copyWith(
                         fontSize: 20,
-                        color: Colors.black,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -194,6 +194,8 @@ class _SettingScreenState extends State<SettingScreen> {
                                   children: [
                                     CustomButton(
                                       text: "Đăng nhập",
+
+                                      textColor: Colors.white,
                                       onPressed: () {
                                         Navigator.push(
                                           context,
@@ -211,6 +213,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                     const SizedBox(width: 8),
                                     CustomButton(
                                       text: "Đăng ký",
+                                      textColor: Colors.white,
                                       onPressed: () {
                                         Navigator.push(
                                           context,
@@ -533,6 +536,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     SizedBox(height: 18),
                     const SectionHeading1(
                       title: 'Tài khoản',
+                      textColor: Colors.black,
                       showActionButton: false,
                     ),
                     if (_isAdmin)
@@ -610,6 +614,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                   const SectionHeading1(
                     title: 'Nâng cao',
+                    textColor: Colors.black,
                     showActionButton: false,
                   ),
                   SettingMenuTile(
@@ -660,6 +665,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     const SizedBox(height: 12),
                     const SectionHeading1(
                       title: 'Khác',
+                      textColor: Colors.black,
                       showActionButton: false,
                     ),
                     SettingMenuTile(

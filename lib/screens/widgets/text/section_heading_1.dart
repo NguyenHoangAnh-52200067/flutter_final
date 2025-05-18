@@ -23,9 +23,7 @@ class SectionHeading1 extends StatelessWidget {
           title,
           style: Theme.of(context).textTheme.headlineSmall!.copyWith(
             fontSize: 18,
-            color:
-                textColor ??
-                Colors.blue, // Màu xanh nếu textColor không được cung cấp
+            color: textColor ?? Colors.blue,
             fontWeight: FontWeight.bold,
           ),
           maxLines: 1,

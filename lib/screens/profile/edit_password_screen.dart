@@ -12,7 +12,6 @@ class EditPasswordScreen extends StatefulWidget {
 class _EditPasswordScreenState extends State<EditPasswordScreen>
     with TickerProviderStateMixin {
   final User? user = FirebaseAuth.instance.currentUser;
-  final UserRepository _userRepo = UserRepository();
 
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();

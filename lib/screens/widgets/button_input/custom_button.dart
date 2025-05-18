@@ -55,7 +55,6 @@
 //   }
 // }
 
-
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatefulWidget {
@@ -76,7 +75,7 @@ class CustomButton extends StatefulWidget {
     required this.onPressed,
     this.backgroundColor = Colors.blueAccent,
     this.textColor = Colors.white,
-    this.fontSize = 18,
+    this.fontSize = 20,
     this.height = 50,
     this.width = double.infinity,
     this.isLoading = false,
@@ -88,7 +87,8 @@ class CustomButton extends StatefulWidget {
   _CustomButtonState createState() => _CustomButtonState();
 }
 
-class _CustomButtonState extends State<CustomButton> with SingleTickerProviderStateMixin {
+class _CustomButtonState extends State<CustomButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
 
@@ -99,9 +99,10 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     )..repeat(reverse: true);
-    _opacityAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _opacityAnimation = Tween<double>(
+      begin: 0.6,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -115,7 +116,7 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
     return Padding(
       padding: widget.padding ?? EdgeInsets.zero,
       child: AnimatedOpacity(
-        opacity: widget.isLoading ? 0.6 : _opacityAnimation.value,
+        opacity: widget.isLoading ? 0.7 : _opacityAnimation.value,
         duration: const Duration(milliseconds: 500),
         child: SizedBox(
           width: widget.width,
@@ -135,22 +136,29 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (widget.icon != null) ...[
-                  Icon(widget.icon, color: widget.textColor, size: widget.fontSize - 6), // Giảm kích thước icon
+                  Icon(
+                    widget.icon,
+                    color: widget.textColor,
+                    size: widget.fontSize - 6,
+                  ), // Giảm kích thước icon
                   const SizedBox(width: 8),
                 ],
-                Flexible( // Đảm bảo text co lại nếu cần
-                  child: widget.isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          widget.text,
-                          style: TextStyle(
-                            color: widget.textColor,
-                            fontSize: widget.fontSize,
-                            fontWeight: FontWeight.bold,
+                Flexible(
+                  // Đảm bảo text co lại nếu cần
+                  child:
+                      widget.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                            widget.text,
+                            style: TextStyle(
+                              color: widget.textColor,
+                              fontSize: widget.fontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow:
+                                TextOverflow.ellipsis, // Cắt text nếu quá dài
+                            textAlign: TextAlign.center,
                           ),
-                          overflow: TextOverflow.ellipsis, // Cắt text nếu quá dài
-                          textAlign: TextAlign.center,
-                        ),
                 ),
               ],
             ),

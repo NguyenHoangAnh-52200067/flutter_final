@@ -19,7 +19,9 @@ class UserProfileTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Colors.blue, // Nền xanh cho avatar
-        child: ImageUtils.buildImage(linkImage, width: 30, height: 30),
+        child: ClipOval(
+          child: ImageUtils.buildImage(linkImage, width: 55, height: 55),
+        ),
       ),
       title: Text(
         fullName,

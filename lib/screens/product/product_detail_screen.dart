@@ -1025,7 +1025,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   },
                   child: Container(
                     height: 50,
-                    color: Color(0xFF2196F3),
+                    color: Colors.deepOrange,
                     alignment: Alignment.center,
                     child: Text(
                       "Mua ngay",
