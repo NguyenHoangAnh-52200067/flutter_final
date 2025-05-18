@@ -1,1 +1,43 @@
-{"firestore":{"rules":"firestore.rules","indexes":"firestore.indexes.json"},"flutter":{"platforms":{"android":{"default":{"projectId":"ecommerce-app-96fda","appId":"1:1061714170696:android:0c22e1f51f6175182ed97d","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"ecommerce-app-96fda","configurations":{"android":"1:1061714170696:android:0c22e1f51f6175182ed97d","ios":"1:1061714170696:ios:650b965c529c3fee2ed97d","macos":"1:1061714170696:ios:650b965c529c3fee2ed97d","web":"1:1061714170696:web:b00a126a648f62352ed97d","windows":"1:1061714170696:web:1a213caf1f66c9722ed97d"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "ecommerce-app-96fda",
+          "appId": "1:1061714170696:android:0c22e1f51f6175182ed97d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "ecommerce-app-96fda",
+          "configurations": {
+            "android": "1:1061714170696:android:0c22e1f51f6175182ed97d",
+            "ios": "1:1061714170696:ios:650b965c529c3fee2ed97d",
+            "macos": "1:1061714170696:ios:650b965c529c3fee2ed97d",
+            "web": "1:1061714170696:web:b00a126a648f62352ed97d",
+            "windows": "1:1061714170696:web:1a213caf1f66c9722ed97d"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
