@@ -478,7 +478,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 },
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
-                              stock == 0 ? Colors.grey : Colors.red,
+                              stock == 0 ? Colors.grey : Colors.blue,
                           padding: EdgeInsets.symmetric(vertical: 14),
                         ),
                         child: Text(
@@ -979,54 +979,58 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           children: [
             Expanded(
               flex: 2,
-              child: Container(
-                height: 50,
-                color: Color(0xFF20A39E),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.chat_bubble_outline,
-                        color: Colors.white,
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(16)),
+                child: Container(
+                  height: 50,
+                  color: Color(0xFF2196F3),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.chat_bubble_outline,
+                          color: Colors.white,
+                        ),
+                        onPressed: onChat,
                       ),
-                      onPressed: onChat,
-                    ),
-                    Container(
-                      width: 1,
-                      height: 40,
-                      color: Colors.white,
-                    ), // Đường kẻ dọc
-                    IconButton(
-                      icon: Icon(Icons.add_shopping_cart, color: Colors.white),
-                      //Thêm vào giỏ hàng
-                      onPressed: () {
-                        setState(() {
-                          isBuyNow = false;
-                        });
-                        _bottomSheet(isBuyNow);
-                      },
-                    ),
-                  ],
+                      Container(width: 1, height: 40, color: Colors.white),
+                      IconButton(
+                        icon: Icon(
+                          Icons.add_shopping_cart,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            isBuyNow = false;
+                          });
+                          _bottomSheet(isBuyNow);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             Expanded(
               flex: 2,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isBuyNow = true;
-                  });
-                  _bottomSheet(isBuyNow);
-                },
-                child: Container(
-                  height: 50,
-                  color: Color(0xFFE63946),
-                  alignment: Alignment.center,
-                  child: Text(
-                    "Mua ngay",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(topRight: Radius.circular(16)),
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isBuyNow = true;
+                    });
+                    _bottomSheet(isBuyNow);
+                  },
+                  child: Container(
+                    height: 50,
+                    color: Color(0xFF2196F3),
+                    alignment: Alignment.center,
+                    child: Text(
+                      "Mua ngay",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                   ),
                 ),
               ),
@@ -1052,7 +1056,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       height: 80,
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
-        return const Icon(Icons.broken_image, size: 80, color: Colors.red);
+        return const Icon(Icons.broken_image, size: 80, color: Colors.blue);
       },
     );
   }
