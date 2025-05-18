@@ -26,6 +26,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       ImageUploadService.getInstance();
 
   final _fullNameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
 
   List<String> _addressSug = [];
