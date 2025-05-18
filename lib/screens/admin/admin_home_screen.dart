@@ -6,6 +6,7 @@ import 'package:ecommerce_app/screens/admin/widgets/advanced_dashboard.dart';
 import 'package:ecommerce_app/screens/category/category_manage_screen.dart';
 import 'package:ecommerce_app/screens/chat/chat_screen.dart';
 import 'package:ecommerce_app/screens/product/product_manage_screen.dart';
+import 'package:ecommerce_app/services/firebase_auth_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -510,8 +511,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         leading: const Icon(Icons.logout, color: Colors.red),
         title: const Text("Đăng xuất", style: const TextStyle(fontSize: 16)),
         onTap: () async {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.clear();
+          await FirebaseAuthService().signOut();
           if (!mounted) return;
           Navigator.pushAndRemoveUntil(
             context,
