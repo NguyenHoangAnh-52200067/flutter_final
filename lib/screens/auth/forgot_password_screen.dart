@@ -1,175 +1,3 @@
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:flutter/material.dart';
-
-// class ForgotPassword extends StatefulWidget {
-//   const ForgotPassword({super.key});
-
-//   @override
-//   _LoginState createState() => _LoginState();
-// }
-
-// class _LoginState extends State<ForgotPassword> {
-//   final _emailController = TextEditingController();
-//   final _formKey = GlobalKey<FormState>();
-
-//   bool _isLoading = false;
-//   final FocusNode _focusNode = FocusNode();
-
-//   Future<void> _resetPassword() async {
-//     if (!_formKey.currentState!.validate()) return;
-
-//     setState(() => _isLoading = true);
-
-//     try {
-//       await FirebaseAuth.instance.sendPasswordResetEmail(
-//         email: _emailController.text.trim(),
-//       );
-
-//       if (mounted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(
-//             content: Text(
-//               'Link đặt lại mật khẩu đã được gửi đến email của bạn',
-//             ),
-//           ),
-//         );
-//         Navigator.pop(context);
-//       }
-//     } on FirebaseAuthException catch (e) {
-//       String message;
-//       switch (e.code) {
-//         case 'user-not-found':
-//           message = 'Không tìm thấy tài khoản với email này.';
-//           break;
-//         case 'invalid-email':
-//           message = 'Email không hợp lệ.';
-//           break;
-//         default:
-//           message = e.message ?? 'Đã xảy ra lỗi.';
-//       }
-//       ScaffoldMessenger.of(
-//         context,
-//       ).showSnackBar(SnackBar(content: Text(message)));
-//     } finally {
-//       setState(() => _isLoading = false);
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(backgroundColor: Colors.transparent),
-//       backgroundColor: const Color(0xFF7AE582),
-//       body: Center(
-//         child: SingleChildScrollView(
-//           child: SizedBox(
-//             height: MediaQuery.of(context).size.height * 0.8,
-//             child: Column(
-//               mainAxisAlignment: MainAxisAlignment.start,
-//               children: <Widget>[
-//                 const SizedBox(height: 30),
-//                 const Text(
-//                   'QUÊN MẬT KHẨU?',
-//                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-//                 ),
-//                 const SizedBox(height: 10),
-//                 const Padding(
-//                   padding: EdgeInsets.symmetric(horizontal: 40),
-//                   child: Text(
-//                     'Đừng lo lắng! Hãy nhập email của bạn đã đăng ký và chúng tôi sẽ gửi cho bạn link để đặt lại mật khẩu',
-//                     style: TextStyle(fontSize: 16),
-//                     textAlign: TextAlign.center,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 30),
-//                 Form(
-//                   key: _formKey,
-//                   child: Column(
-//                     children: [
-//                       Padding(
-//                         padding: const EdgeInsets.all(24.0),
-//                         child: TextFormField(
-//                           controller: _emailController,
-//                           keyboardType: TextInputType.emailAddress,
-//                           textInputAction: TextInputAction.done,
-//                           decoration: InputDecoration(
-//                             enabledBorder: OutlineInputBorder(
-//                               borderRadius: BorderRadius.circular(12),
-//                               borderSide: const BorderSide(color: Colors.white),
-//                             ),
-//                             focusedBorder: OutlineInputBorder(
-//                               borderRadius: BorderRadius.circular(12),
-//                               borderSide: const BorderSide(
-//                                 color: Colors.deepPurple,
-//                               ),
-//                             ),
-//                             hintText: 'Email',
-//                             fillColor: Colors.grey[200],
-//                             filled: true,
-//                           ),
-//                           validator: (String? value) {
-//                             if (value == null || value.isEmpty) {
-//                               return 'Vui lòng nhập email';
-//                             }
-//                             final RegExp emailRegExp = RegExp(
-//                               r'^[^@]+@[^@]+\.[^@]+$',
-//                             );
-//                             if (!emailRegExp.hasMatch(value)) {
-//                               _focusNode.requestFocus();
-//                               return 'Email không đúng định dạng';
-//                             }
-//                             return null;
-//                           },
-//                         ),
-//                       ),
-//                       Padding(
-//                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
-//                         child: SizedBox(
-//                           width: double.infinity,
-//                           height: 50,
-//                           child: ElevatedButton(
-//                             onPressed: _isLoading ? null : _resetPassword,
-//                             style: ElevatedButton.styleFrom(
-//                               backgroundColor: Colors.black,
-//                               foregroundColor: Colors.white,
-//                               disabledBackgroundColor: Colors.grey[300],
-//                               disabledForegroundColor: Colors.grey[600],
-//                               shape: RoundedRectangleBorder(
-//                                 borderRadius: BorderRadius.circular(5),
-//                               ),
-//                             ),
-//                             child:
-//                                 _isLoading
-//                                     ? const CircularProgressIndicator(
-//                                       color: Colors.white,
-//                                     )
-//                                     : const Text(
-//                                       'GỬI YÊU CẦU',
-//                                       style: TextStyle(fontSize: 18),
-//                                     ),
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   @override
-//   void dispose() {
-//     _emailController.dispose();
-//     _focusNode.dispose();
-//     super.dispose();
-//   }
-// }
-
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -181,7 +9,8 @@ class ForgotPassword extends StatefulWidget {
   _ForgotPasswordState createState() => _ForgotPasswordState();
 }
 
-class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStateMixin {
+class _ForgotPasswordState extends State<ForgotPassword>
+    with TickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -199,21 +28,22 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
   @override
   void initState() {
     super.initState();
-    
+
     // Cài đặt orientation để chỉ portrait mode
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    
+
     // Fade animation
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeIn));
     _fadeController.forward();
 
     // Scale animation cho nút gửi yêu cầu
@@ -232,17 +62,18 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
       }
     });
     _scaleController.forward();
-    
+
     // Slide animation
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOut),
-    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
     _slideController.forward();
-    
+
     // Lắng nghe sự thay đổi trạng thái bàn phím
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
@@ -314,10 +145,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              message,
-              style: const TextStyle(color: Colors.white),
-            ),
+            content: Text(message, style: const TextStyle(color: Colors.white)),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
             elevation: 6,
@@ -338,7 +166,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
     // MediaQuery để xác định kích thước màn hình và bàn phím
     final mediaQuery = MediaQuery.of(context);
     final isKeyboardOpen = mediaQuery.viewInsets.bottom > 0;
-    
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -367,7 +195,10 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
             physics: const AlwaysScrollableScrollPhysics(),
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minHeight: mediaQuery.size.height - mediaQuery.padding.top - kToolbarHeight,
+                minHeight:
+                    mediaQuery.size.height -
+                    mediaQuery.padding.top -
+                    kToolbarHeight,
               ),
               child: Padding(
                 padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
@@ -380,7 +211,8 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
                       duration: const Duration(milliseconds: 200),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        height: isKeyboardOpen ? 0 : mediaQuery.size.height * 0.2,
+                        height:
+                            isKeyboardOpen ? 0 : mediaQuery.size.height * 0.2,
                         child: FadeTransition(
                           opacity: _fadeAnimation,
                           child: Column(
@@ -432,7 +264,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
                         ),
                       ),
                     ),
-                    
+
                     // Phần chính - form nhập email
                     SlideTransition(
                       position: _slideAnimation,
@@ -448,7 +280,9 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
                             Container(
                               height: isKeyboardOpen ? 40 : 50,
                               alignment: Alignment.center,
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Text(
                                 'Đừng lo lắng! Hãy nhập email của bạn đã đăng ký và chúng tôi sẽ gửi link để đặt lại mật khẩu',
                                 style: TextStyle(
@@ -469,7 +303,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
                               ),
                             ),
                             const SizedBox(height: 12),
-                            
+
                             // Card chứa form
                             Card(
                               elevation: 8,
@@ -487,39 +321,62 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
                                   key: _formKey,
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
                                       // Input nhập email
                                       TextFormField(
                                         controller: _emailController,
                                         focusNode: _focusNode,
-                                        keyboardType: TextInputType.emailAddress,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
                                         textInputAction: TextInputAction.done,
                                         style: const TextStyle(
                                           fontSize: 16,
                                           color: Colors.black87,
                                         ),
                                         decoration: InputDecoration(
-                                          contentPadding: const EdgeInsets.symmetric(
-                                            vertical: 15,
-                                            horizontal: 15,
-                                          ),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                vertical: 15,
+                                                horizontal: 15,
+                                              ),
                                           enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(15),
-                                            borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                                            borderRadius: BorderRadius.circular(
+                                              15,
+                                            ),
+                                            borderSide: const BorderSide(
+                                              color: Colors.blue,
+                                              width: 1.5,
+                                            ),
                                           ),
                                           focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(15),
-                                            borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
+                                            borderRadius: BorderRadius.circular(
+                                              15,
+                                            ),
+                                            borderSide: const BorderSide(
+                                              color: Colors.blueAccent,
+                                              width: 2,
+                                            ),
                                           ),
                                           errorBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(15),
-                                            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                                            borderRadius: BorderRadius.circular(
+                                              15,
+                                            ),
+                                            borderSide: const BorderSide(
+                                              color: Colors.redAccent,
+                                              width: 1.5,
+                                            ),
                                           ),
-                                          focusedErrorBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(15),
-                                            borderSide: const BorderSide(color: Colors.redAccent, width: 2),
-                                          ),
+                                          focusedErrorBorder:
+                                              OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                                borderSide: const BorderSide(
+                                                  color: Colors.redAccent,
+                                                  width: 2,
+                                                ),
+                                              ),
                                           hintText: 'Nhập email của bạn',
                                           hintStyle: TextStyle(
                                             color: Colors.grey[400],
@@ -527,7 +384,10 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
                                           fillColor: Colors.white,
                                           filled: true,
                                           prefixIcon: Container(
-                                            margin: const EdgeInsets.only(left: 10, right: 10),
+                                            margin: const EdgeInsets.only(
+                                              left: 10,
+                                              right: 10,
+                                            ),
                                             child: const Icon(
                                               Icons.email_rounded,
                                               color: Colors.blueAccent,
@@ -553,33 +413,44 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
                                           return null;
                                         },
                                       ),
-                                      
+
                                       const SizedBox(height: 20),
-                                      
+
                                       // Nút gửi yêu cầu
                                       ScaleTransition(
                                         scale: _scaleAnimation,
                                         child: Container(
                                           height: 50,
                                           decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(15),
+                                            borderRadius: BorderRadius.circular(
+                                              15,
+                                            ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.blue.withOpacity(0.3),
+                                                color: Colors.blue.withOpacity(
+                                                  0.3,
+                                                ),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 4),
                                               ),
                                             ],
                                             gradient: const LinearGradient(
-                                              colors: [Colors.blue, Colors.blueAccent],
+                                              colors: [
+                                                Colors.blue,
+                                                Colors.blueAccent,
+                                              ],
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
                                             ),
                                           ),
                                           child: ElevatedButton(
-                                            onPressed: _isLoading ? null : _resetPassword,
+                                            onPressed:
+                                                _isLoading
+                                                    ? null
+                                                    : _resetPassword,
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.transparent,
+                                              backgroundColor:
+                                                  Colors.transparent,
                                               shadowColor: Colors.transparent,
                                               foregroundColor: Colors.white,
                                               textStyle: const TextStyle(
@@ -588,37 +459,56 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
                                                 letterSpacing: 1,
                                               ),
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(15),
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
                                               ),
                                             ),
-                                            child: _isLoading
-                                                ? const SizedBox(
-                                                    height: 24,
-                                                    width: 24,
-                                                    child: CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2.5,
+                                            child:
+                                                _isLoading
+                                                    ? const SizedBox(
+                                                      height: 24,
+                                                      width: 24,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                            color: Colors.white,
+                                                            strokeWidth: 2.5,
+                                                          ),
+                                                    )
+                                                    : Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        const Text(
+                                                          'GỬI YÊU CẦU',
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 8,
+                                                        ),
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets.all(
+                                                                4,
+                                                              ),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                                color: Colors
+                                                                    .white
+                                                                    .withOpacity(
+                                                                      0.3,
+                                                                    ),
+                                                                shape:
+                                                                    BoxShape
+                                                                        .circle,
+                                                              ),
+                                                          child: const Icon(
+                                                            Icons.arrow_forward,
+                                                            size: 16,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  )
-                                                : Row(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                    children: [
-                                                      const Text('GỬI YÊU CẦU'),
-                                                      const SizedBox(width: 8),
-                                                      Container(
-                                                        padding: const EdgeInsets.all(4),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white.withOpacity(0.3),
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: const Icon(
-                                                          Icons.arrow_forward,
-                                                          size: 16,
-                                                          color: Colors.white,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
                                           ),
                                         ),
                                       ),
@@ -631,7 +521,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with TickerProviderStat
                         ),
                       ),
                     ),
-                    
+
                     // Bottom spacing to ensure content is visible when keyboard appears
                     SizedBox(height: isKeyboardOpen ? 20 : 0),
                   ],

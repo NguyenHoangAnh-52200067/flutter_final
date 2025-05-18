@@ -21,46 +21,41 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 0.0),
       child: AppBar(
-        backgroundColor: Colors.blue, // Set background to blue
+        backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
-        leading: showBackArrow
-            ? IconButton(
-                onPressed: () => Get.back(),
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: Colors.white, // White icon for contrast
-                ),
-              )
-            : leadingIcon != null
+        leading:
+            showBackArrow
                 ? IconButton(
-                    onPressed: leadingOnPressed,
-                    icon: Icon(
-                      leadingIcon,
-                      color: Colors.white, // White icon for contrast
-                    ),
-                  )
+                  onPressed: () => Get.back(),
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                )
+                : leadingIcon != null
+                ? IconButton(
+                  onPressed: leadingOnPressed,
+                  icon: Icon(leadingIcon, color: Colors.white),
+                )
                 : null,
         title: DefaultTextStyle(
           style: const TextStyle(
-            color: Colors.white, // White text for title
+            color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w500,
           ),
           child: title ?? const SizedBox.shrink(),
         ),
-        actions: actions?.map((action) {
-          // Ensure actions (icons/buttons) use white color
-          return Theme(
-            data: Theme.of(context).copyWith(
-              iconTheme: const IconThemeData(color: Colors.white),
-            ),
-            child: action,
-          );
-        }).toList(),
-        elevation: 2, // Subtle shadow for depth
-        shadowColor: Colors.blue.shade900, // Shadow matches blue theme
+        actions:
+            actions?.map((action) {
+              return Theme(
+                data: Theme.of(
+                  context,
+                ).copyWith(iconTheme: const IconThemeData(color: Colors.white)),
+                child: action,
+              );
+            }).toList(),
+        elevation: 2,
+        shadowColor: Colors.blue.shade900,
       ),
     );
   }
