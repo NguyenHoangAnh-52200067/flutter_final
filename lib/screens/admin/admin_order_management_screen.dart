@@ -796,8 +796,9 @@ class _AdminOrderManagementScreenState extends State<AdminOrderManagementScreen>
     });
 
     try {
+      print("trước lấy order");
       final orderList = await _orderRepository.getAllOrders();
-
+      print("lấy được all order");
       final filteredOrders =
           _startDate != null && _endDate != null
               ? orderList.where((order) {

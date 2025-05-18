@@ -72,7 +72,9 @@ class OrderRepository {
 
   Future<List<OrderModel>> getAllOrders() async {
     try {
+      print("trong hàm getAllOrders");
       final querySnapshot = await _db.collection(_collection).get();
+      print("sau hàm getallorders");
       return querySnapshot.docs
           .map((doc) => OrderModel.fromJson(doc.data(), doc.id))
           .toList();

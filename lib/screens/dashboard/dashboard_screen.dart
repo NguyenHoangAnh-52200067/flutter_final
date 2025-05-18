@@ -5,6 +5,7 @@ import 'package:ecommerce_app/models/user_model.dart';
 import 'package:ecommerce_app/repository/category_repository.dart';
 import 'package:ecommerce_app/repository/user_repository.dart';
 import 'package:ecommerce_app/screens/cart/voucher_screen.dart';
+import 'package:ecommerce_app/screens/chat/chat_screen.dart';
 import 'package:ecommerce_app/screens/dashboard/dashboard_product_list_screen.dart';
 import 'package:ecommerce_app/screens/widgets/appbar/home_appbar.dart';
 import 'package:ecommerce_app/screens/widgets/banner/banner_widget.dart';
@@ -127,6 +128,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            final user = FirebaseAuth.instance.currentUser!;
+            final roomId = '${user.uid}_admin';
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(roomId: roomId),
+              ),
+            );
+          },
+          child: Icon(Icons.chat),
         ),
       ),
     );

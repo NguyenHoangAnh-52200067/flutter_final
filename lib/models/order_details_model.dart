@@ -17,7 +17,7 @@ class OrderDetailsModel {
   factory OrderDetailsModel.fromJson(Map<String, dynamic> json) {
     return OrderDetailsModel(
       orderId: json['orderId'],
-      revenue: json['revenue'],
+      revenue: (json['revenue'] as num).toDouble(),
       product: ProductModel.fromJson(json['product'], json['product']['id']),
       quantity: json['quantity'],
     );
