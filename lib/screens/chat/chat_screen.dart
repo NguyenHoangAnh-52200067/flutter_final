@@ -36,6 +36,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     roomId = widget.roomId;
     _getChatRoomUserName();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
@@ -43,7 +44,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      final threshold = 100; // px
+      final threshold = 100;
       final shouldScroll =
           _scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - threshold;
@@ -55,6 +56,21 @@ class _ChatScreenState extends State<ChatScreen> {
           curve: Curves.easeOut,
         );
       }
+    }
+  }
+
+  void _openAppScroll() {
+    final threshold = 100;
+    final shouldScroll =
+        _scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - threshold;
+
+    if (shouldScroll) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
@@ -73,36 +89,37 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _sendMessage() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final text = _controller.text.trim();
-    if (text.isEmpty) return;
-    _controller.clear();
-    setState(() {
-      _isComposing = false;
+  Future<void> _sendMessage(String text) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || text.trim().isEmpty) return;
+
+    final chatDocRef = FirebaseFirestore.instance
+        .collection('chats')
+        .doc(widget.roomId);
+    final messagesRef = chatDocRef.collection('messages');
+
+    final parts = widget.roomId.split('_');
+    final uid1 = parts[0];
+    final uid2 = parts[1];
+    final customerId = (uid1 == 'admin') ? uid2 : uid1;
+
+    UserModel? userModel = await _userRepo.getUserDetails(currentUser.uid);
+    final customerName = userModel?.fullName ?? 'Người dùng';
+    final chatDocSnapshot = await chatDocRef.get();
+    final originalUserId = chatDocSnapshot.data()?['userId'] ?? customerId;
+
+    await messagesRef.add({
+      'text': text,
+      'senderId': currentUser.uid,
+      'timestamp': FieldValue.serverTimestamp(),
     });
 
-    await FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.roomId)
-        .set({
-          'lastMessage': text,
-          'lastTimestamp': FieldValue.serverTimestamp(),
-          'userId': user?.uid,
-          'userName': _fullName ?? 'Người dùng ẩn danh',
-        }, SetOptions(merge: true));
-
-    await FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.roomId)
-        .collection('messages')
-        .add({
-          'text': text,
-          'senderId': user?.uid,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-
-    Future.delayed(Duration(milliseconds: 100), _scrollToBottom);
+    await chatDocRef.set({
+      'lastMessage': text,
+      'lastTimestamp': FieldValue.serverTimestamp(),
+      'userId': originalUserId,
+      'customerName': customerName,
+    }, SetOptions(merge: true));
   }
 
   String _formatTimestamp(Timestamp? timestamp) {
@@ -122,6 +139,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _openAppScroll();
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
@@ -220,7 +238,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
                     return Column(
                       children: [
-                        // Hiển thị dải ngăn cách ngày nếu cần
                         if (showDateSeparator && timestamp != null)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -236,7 +253,6 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
 
-          // Khu vực nhập tin nhắn
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -289,7 +305,16 @@ class _ChatScreenState extends State<ChatScreen> {
                         Icons.send_rounded,
                         color: _isComposing ? Colors.white : textLightColor,
                       ),
-                      onPressed: _isComposing ? _sendMessage : null,
+                      onPressed:
+                          _isComposing
+                              ? () async {
+                                await _sendMessage(_controller.text);
+                                _controller.clear();
+                                setState(() {
+                                  _isComposing = false;
+                                });
+                              }
+                              : null,
                     ),
                   ),
                 ],
